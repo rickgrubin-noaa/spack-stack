@@ -8,7 +8,7 @@ spack:
   definitions:
   - compilers: ['%aocc', '%apple-clang', '%gcc', '%intel', '%oneapi']
   - packages:
-    - ewok-env +ecflow ~cylc
+    - ewok-env +ecflow +cylc
     - ai-env
     - geos-gcm-env          ^esmf@=8.6.1
     - jedi-fv3-env
@@ -18,10 +18,6 @@ spack:
     - jedi-ufs-env          ^esmf@=8.6.1
     - jedi-um-env
     - soca-env
-
-    # Various fms tags (list all to avoid duplicate packages)
-    - fms@release-jcsda
-    - fms@2023.04
 
     # Various crtm tags (list all to avoid duplicate packages)
     - crtm@2.4.0.1
