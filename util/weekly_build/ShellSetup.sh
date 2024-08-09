@@ -28,7 +28,27 @@ case $PLATFORM in
     ;;
   orion)
     COMPILERS=${COMPILERS:-"intel gcc"}
-    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/role-epic/spack-stack/orion/build_cache}
+#    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/role-epic/spack-stack/orion/build_cache}
+    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/rgrubin/build_cache}
+    function spack_install_exe {
+      set +e
+      # submit slurm job here
+      spack_install_exe install $INSTALL_OPTS --test root $PACKAGES_TO_TEST
+      # Install the rest of the stack as usual:
+      spack_install_exe install $INSTALL_OPTS $PACKAGES_TO_INSTALL
+      wait
+      rc=$?
+      set -e
+      cat spack-build-cache-${RUNID}*
+      return $rc
+    }
+    PACKAGES_TO_TEST="libpng libaec jasper w3emc g2c"
+    PACKAGES_TO_INSTALL="ufs-weather-model-env global-workflow-env upp-env"
+    INSTALL_OPTS="-j6"
+    function alert_cmd {
+      mail -s 'spack-stack weekly build failure' alexander.richert@noaa.gov  < <(echo "Weekly spack-stack build failed in $1. Run ID: $RUNID")
+    }
+    TEST_UFSWM=ON
     ;;
   discover16)
     COMPILERS=${COMPILERS:-"intel gcc"}
