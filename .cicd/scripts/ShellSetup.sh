@@ -46,7 +46,7 @@ case $PLATFORM in
     PACKAGES_TO_INSTALL="ufs-weather-model-env global-workflow-env upp-env"
     INSTALL_OPTS="-j6"
     function alert_cmd {
-      mail -s 'spack-stack weekly build failure' alexander.richert@noaa.gov  < <(echo "Weekly spack-stack build failed in $1. Run ID: $RUNID")
+      mail -s 'spack-stack weekly build failure' richard.grubin@noaa.gov  < <(echo "Weekly spack-stack build failed in $1. Run ID: $RUNID")
     }
     TEST_UFSWM=ON
     ;;
