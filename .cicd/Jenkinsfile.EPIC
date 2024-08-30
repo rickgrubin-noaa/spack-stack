@@ -1,0 +1,402 @@
+pipeline {
+    agent none
+
+    options {
+        disableConcurrentBuilds()
+        overrideIndexTriggers(false)
+        skipDefaultCheckout(true)
+        timestamps()
+        timeout(time: 6, unit: 'HOURS')
+    }
+
+    parameters {
+        // Allow job runner to filter based on platform
+        choice(name: 'UFS_PLATFORM_FILTER', choices: ['all', 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1', 'azclusternoaav2use1', 'gclusternoaav2usc1'], description: 'Specify the platform(s) to use')
+        // Allow job runner to filter based on compiler
+        choice(name: 'UFS_COMPILER_FILTER', choices: ['all', 'gnu', 'intel'], description: 'Specify the compiler(s) to use to build')
+        // Regression Tests ?
+        booleanParam name: 'StartOver', defaultValue: false, description: 'Whether to clean old weekly files'
+    }
+
+    stages {
+        stage('Check Nodes') {
+            steps {
+                script {
+                    build job: '/infrastructure/is_up', parameters: [string(name: 'NODE_CHOICE', value: 'pclusternoaav2use1'  ?: 'none')], wait: false
+                    build job: '/infrastructure/is_up', parameters: [string(name: 'NODE_CHOICE', value: 'azclusternoaav2use1' ?: 'none')], wait: false
+                    build job: '/infrastructure/is_up', parameters: [string(name: 'NODE_CHOICE', value: 'gclusternoaav2usc1'  ?: 'none')], wait: false
+                    sleep time: 120, unit: 'SECONDS'
+                }
+            }
+        }
+
+        // Build and test the WM application on all supported platforms using the supported compilers for each platform
+        stage('Build and Test') {
+            matrix {
+                // Run on all platform/compiler combinations by default or build and test only on the platform(s) and
+                // compiler(s) specified by UFS_PLATFORM_FILTER and UFS_COMPILER_FILTER
+                when {
+                    beforeAgent true
+                    expression {
+                        return nodesByLabel(env.UFS_PLATFORM).size() > 0
+                    }
+
+                    allOf {
+                        anyOf {
+                            expression { params.UFS_PLATFORM_FILTER == 'all' }
+                            expression { params.UFS_PLATFORM_FILTER == env.UFS_PLATFORM }
+                        }
+
+                        anyOf {
+                            expression { params.UFS_COMPILER_FILTER == 'all' }
+                            expression { params.UFS_COMPILER_FILTER == env.UFS_COMPILER }
+                        }
+                    }
+                }
+
+                axes {
+                    axis {
+                        name 'UFS_PLATFORM'
+                        values 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules' , 'pclusternoaav2use1', 'azclusternoaav2use1', 'gclusternoaav2usc1'
+                    }
+
+                    axis {
+                        name 'UFS_COMPILER'
+                        values 'all', 'gnu', 'intel'
+                    }
+                }
+
+                excludes {
+                    // Exclude GNU from platforms that don't support it
+                    exclude {
+                            axis {
+                            name 'UFS_PLATFORM'
+                            values 'derecho', 'gaea', 'hera', 'jet', 'orion', 'hercules', 'pclusternoaav2use1' , 'azclusternoaav2use1', 'gclusternoaav2usc1'
+                        }
+
+                        axis {
+                            name 'UFS_COMPILER'
+                            values 'all', 'gnu', 'intel'
+                        }
+                    }
+                }
+
+                agent {
+                    label env.UFS_PLATFORM
+                }
+
+                environment {
+                    WORKING_DIR = "${env.UFS_PLATFORM}-${env.UFS_COMPILER}"
+                    APP_DIR = "${WORKSPACE}/${env.WORKING_DIR}"
+                    BUILD_DIR_DOW = "${env.APP_DIR}/${env.BUILD_DAY}"
+                    BRANCH_NAME_ESCAPED = env.BRANCH_NAME.replace('/', '_')
+                    BUILD_VERSION = "${env.UFS_PLATFORM}-${env.UFS_COMPILER}-${env.BRANCH_NAME_ESCAPED}-${env.BUILD_NUMBER}"
+                    BUILD_NAME = "spak-stack_${env.BUILD_VERSION}"
+                    INSTALL_NAME = "install_${env.UFS_COMPILER}"
+                    ACCNR = "epic"
+                }
+
+                stages {
+                    // Clean and create the workspace , checkout the repository into ${env.UFS_PLATFORM}
+                    stage('Initialize scm') {
+                        steps {
+                                echo "${env.STAGE_NAME} spack-stack (${env.UFS_COMPILER}) create workspace on ${env.UFS_PLATFORM} (using ${env.WORKSPACE}/${env.UFS_PLATFORM})"
+                                cleanWs()
+                                sh "env | egrep = | egrep -v ' ' | sort | tee ${env.UFS_PLATFORM}-${env.UFS_COMPILER}-build-env.txt | egrep '^HOST|^LOGNAME=|^USER=|^HOME=|^PATH=|^PWD=|^NODE|^WORKSPACE|^JOB|^BUILD|^BRANCH|^UFS'"
+                                sh '''
+                                    pwd
+                                    set +x
+                                    echo "NODE_NAME=${NODE_NAME}"
+                                    echo "WORKSPACE=${WORKSPACE}"
+                                    echo "UFS_PLATFORM=${UFS_PLATFORM}"
+                                    echo "UFS_COMPILER=${UFS_COMPILER}"
+                                    echo "BUILD_DAY=${BUILD_DAY}" # daily | weekly
+                                    echo "WORKING_DIR=${WORKING_DIR}"
+                                    echo "APP_DIR=${APP_DIR}"
+                                    echo "BUILD_DIR_DOW=${BUILD_DIR_DOW}"
+                                    set -x
+
+                                    [[ $StartOver == true ]] && rm -rf ${APP_DIR} # in case we want to clear out any old set of working files ...
+                                    mkdir -p ${APP_DIR}
+                                    
+                                    [[ -d ${BUILD_DIR_DOW}/.git ]] || rm -f ${UFS_PLATFORM}-${UFS_COMPILER}-time-*
+                                    set +x
+                                
+                                    echo "# checkout scm ${BRANCH_NAME} on ${UFS_PLATFORM}"
+                                    [[ -d ${BUILD_DIR_DOW}/.git ]] || /usr/bin/time -p \
+                                        -o ${UFS_PLATFORM}-${UFS_COMPILER}-time-wm_init.json \
+                                        -f '{\n  "cpu": "%P"\n, "memMax": "%M"\n, "mem": {"text": "%X", "data": "%D", "swaps": "%W", "context": "%c", "waits": "%w"}\n, "pagefaults": {"major": "%F", "minor": "%R"}\n, "filesystem": {"inputs": "%I", "outputs": "%O"}\n, "time": {"real": "%e", "user": "%U", "sys": "%S"}\n}' \
+                                    git clone --quiet --recurse-submodules https://github.com/JCSDA/spack-stack.git -b ${BRANCH_NAME} ${BUILD_DIR_DOW}
+                                    
+                                    set -x
+                                    ls -al ${BUILD_DIR_DOW}
+                                    cd ${BUILD_DIR_DOW}
+                                    pwd
+                                    
+                                    git branch
+                                    git log -1 --oneline
+                                    git status
+                                    set +x
+                                    find . -name .git -type d
+                                '''
+                        }
+
+                        post {
+                            always {
+                                echo "#### Initialize COMPLETE."
+                            }
+                        }
+                    }
+
+                    // Activate the spack environment; if successful create a tarball of the build and upload to S3
+                    stage('Build') {
+                        options {
+                            timeout(time: 4, unit: 'HOURS')
+                        }
+
+                        steps {
+                            dir ("${env.UFS_PLATFORM}-${env.UFS_COMPILER}") {
+                                echo "${env.STAGE_NAME} spack-stack env (${env.UFS_COMPILER}) on ${env.UFS_PLATFORM} (using ${env.WORKSPACE}/${env.UFS_PLATFORM})"
+                                sh '''
+                                    pwd
+                                    set +x
+                                    echo "NODE_NAME=${NODE_NAME}"
+                                    echo "WORKSPACE=${WORKSPACE}"
+                                    echo "UFS_PLATFORM=${UFS_PLATFORM}"
+                                    echo "UFS_COMPILER=${UFS_COMPILER}"
+                                    echo "BUILD_DAY=${BUILD_DAY}" # daily | weekly
+                                    echo "WORKING_DIR=${WORKING_DIR}"
+                                    echo "APP_DIR=${APP_DIR}"
+                                    echo "BUILD_DIR_DOW=${BUILD_DIR_DOW}"
+                                    set -x
+                                    
+                                    export SPACK_STACK_MODULEFILES=modulefiles
+                                    #export SPACK_STACK_MODULEFILES=spack-stack-1.5.0
+                                    
+                                    export SPACK_DIR=$(dirname ${WORKSPACE})/${JOB_BASE_NAME}/${WORKING_DIR} # common location of cache, in case builds use temp space
+                                    
+                                    export BUILD_CACHE_DIR=${SPACK_DIR} # Default for any platform. Redefine below, as needed.
+                                    [[ ${PLATFORM_NAME} == orion    ]] && BUILD_CACHE_DIR=/work2/noaa/epic/role-epic/spack-build-cache/jenkins-buildcache-Orion
+                                    [[ ${PLATFORM_NAME} == hercules ]] && BUILD_CACHE_DIR=/work2/noaa/epic/role-epic/spack-build-cache/jenkins-buildcache-Hercules
+                                    [[ ${PLATFORM_NAME} =~ gaea     ]] && BUILD_CACHE_DIR=${SPACK_DIR}
+                                    [[ ${PLATFORM_NAME} == jet      ]] && BUILD_CACHE_DIR=/lfs4/HFIP/hfv3gfs/role.epic/jenkins/spack-build-cache/jenkins-buildcache-Jet
+                                    [[ ${PLATFORM_NAME} == hera     ]] && BUILD_CACHE_DIR=${SPACK_DIR}
+                                    [[ ${PLATFORM_NAME} == derecho  ]] && BUILD_CACHE_DIR=${SPACK_DIR}
+                                    
+                                    [[ -n ${BUILD_CACHE_DIR} ]]
+                                    status=$?                                    
+                                    set +x
+                                    echo "BUILD_CACHE_DIR=${BUILD_CACHE_DIR}"
+                                    
+                                    function load_spack_modules() {
+                                      local PLATFORM_NAME="$1"
+                                      echo ""
+                                      echo "## Load Modules ..."
+                                      if [[ ${PLATFORM_NAME} == orion ]] ; then
+                                        LOCAL_MODULES_DIR=/work/noaa/epic/role-epic/spack-stack/${PLATFORM_NAME}
+                                        module purge
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        module load python/3.9.2
+                                        module load ecflow/5.8.4
+                                        module load mysql/8.0.31
+                                        
+                                      elif [[ ${PLATFORM_NAME} == hercules ]] ; then
+                                        LOCAL_MODULES_DIR=/work/noaa/epic/role-epic/spack-stack/${PLATFORM_NAME}
+                                        module purge
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        module load ecflow/5.8.4
+                                        module load mysql/8.0.31
+                                        
+                                      elif [[ ${PLATFORM_NAME} =~ gaea ]] ; then
+                                        LOCAL_MODULES_DIR=/lustre/f2/dev/wpo/role.epic/contrib/spack-stack/c5
+                                        module load PrgEnv-intel/8.3.3
+                                        module load intel-classic/2023.1.0
+                                        module load cray-mpich/8.1.25
+                                        module load python/3.9.12
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        #module load qt/5.15.2
+                                        module load ecflow/5.8.4
+                                        module load mysql/8.0.31
+                                        
+                                      elif [[ ${PLATFORM_NAME} == derecho ]]; then
+                                    	LOCAL_MODULES_DIR=/glade/work/epicufsrt/contrib/spack-stack/derecho/
+                                        module purge
+                                        #ignore that the sticky module ncarenv/... is not unloaded
+                                        export LMOD_TMOD_FIND_FIRST=yes
+                                        module load ncarenv/23.09
+                                        #module use /glade/work/epicufsrt/contrib/spack-stack/derecho/modulefiles
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        module load ecflow/5.8.4
+                                        module load mysql/8.0.33
+                                        
+                                      elif [[ ${PLATFORM_NAME} == hera ]]; then
+                                    	LOCAL_MODULES_DIR=/scratch1/NCEPDEV/nems/role.epic/spack-stack/
+                                        module purge
+                                        #module use /scratch1/NCEPDEV/jcsda/jedipara/spack-stack/modulefiles
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        module load miniconda/3.9.12
+                                        module load ecflow/5.5.3
+                                        module load mysql/8.0.31
+                                        
+                                      elif [[ ${PLATFORM_NAME} == jet ]]; then
+                                    	LOCAL_MODULES_DIR=/mnt/lfs4/HFIP/hfv3gfs/role.epic/spack-stack/
+                                        module purge
+                                        #module use /lfs4/HFIP/hfv3gfs/spack-stack/modulefiles
+                                        module use ${LOCAL_MODULES_DIR}/modulefiles
+                                        module load miniconda/3.9.12
+                                        module load ecflow/5.5.3
+                                        #module use /lfs4/HFIP/hfv3gfs/role.epic/modulefiles
+                                        module use /mnt/lfs4/HFIP/hfv3gfs/role.epic/modulefiles
+                                        module load mysql/8.0.31
+                                        
+                                      #elif [[ ]] # Add others as we go ...
+                                    
+                                      else
+                                        echo "unsupported platform: ${PLATFORM_NAME}"
+                                        return 99
+                                      fi
+                                    
+                                      echo ""
+                                      ( set -x; ls -al ${LOCAL_MODULES_DIR}; )
+                                      echo "## Spack modules loaded."
+                                      echo "LOCAL_MODULES_DIR=${LOCAL_MODULES_DIR}"
+                                      module -t available
+                                    
+                                      return 0
+                                    }
+
+                                    load_spack_modules "${UFS_PLATFORM}"
+                                    status=$?
+                                    
+                                    set -x
+                                    export ENV_TEMPLATE=unified-dev
+                                    [[ -n ${UFS_COMPILER} ]] && [[ ${UFS_COMPILER} != "all" ]] && export ENV_NAME=ci-${UFS_COMPILER} || export ENV_NAME=ci-dev
+
+                                    cd ${BUILD_DIR_DOW}
+                                    pwd
+                                    ls -l
+                                    
+                                    rm -f *-log.txt
+                                    rm -rf envs/${ENV_NAME} # clear out any prior ENV_NAME
+                                    git log -1 --oneline
+                                    git status
+                                    set +x
+                                    
+                                    source ./setup.sh
+                                
+                                    umask 0022
+                                
+                                    spack stack create env --site ${UFS_PLATFORM} --template ${ENV_TEMPLATE} --name ${ENV_NAME}
+                                    status=$?
+                                    echo "## status create=$status" ; echo ""
+                                    
+                                    ls -l envs/.
+                                
+                                    spack env activate -p envs/${ENV_NAME}
+                                    status=$?
+                                    echo "## status activate=$status" ; echo ""
+                                    
+                                    spack env deactivate
+
+                                    /usr/bin/time -p \
+                                        -o ${WORKSPACE}/${UFS_PLATFORM}-${UFS_COMPILER}-time-wm_build.json \
+                                        -f '{\n  "cpu": "%P"\n, "memMax": "%M"\n, "mem": {"text": "%X", "data": "%D", "swaps": "%W", "context": "%c", "waits": "%w"}\n, "pagefaults": {"major": "%F", "minor": "%R"}\n, "filesystem": {"inputs": "%I", "outputs": "%O"}\n, "time": {"real": "%e", "user": "%U", "sys": "%S"}\n}' \
+                                    ls -la | tee ./build-log.txt
+                                    status=${PIPESTATUS[0]}
+                                    echo "Pipeline Completed spack-stack env on ${UFS_PLATFORM} ${UFS_COMPILER}. status=$status"
+                                '''
+                            }
+                        }
+
+                        post {
+                            success {
+                                echo "#### Build SUCCESS."
+                            }
+                            always {
+                                echo "#### Build COMPLETE."
+                            }
+                        }
+                    }
+
+                    // Run simple WM regression test script
+                    stage('Test') {
+                        options {
+                            timeout(time: 4, unit: 'HOURS')
+                        }
+
+                        environment {
+                            EXPERIMENT_BASE_DIR = "${env.WORKSPACE}/${env.UFS_PLATFORM}/tests"
+                        }
+
+                        steps {
+                            dir ("${env.UFS_PLATFORM}-${env.UFS_COMPILER}") {
+                                echo "${env.STAGE_NAME} WM (${env.UFS_COMPILER}) on ${env.UFS_PLATFORM} (using ${env.WORKSPACE}/${env.UFS_PLATFORM})"
+
+                                script {
+                                    def run_regression_tests = params.WM_REGRESSION_TESTS
+                                sh '''
+                                    pwd
+                                    set +x
+                                    echo "NODE_NAME=${NODE_NAME}"
+                                    echo "WORKSPACE=${WORKSPACE}"
+                                    echo "UFS_PLATFORM=${UFS_PLATFORM}"
+                                    echo "UFS_COMPILER=${UFS_COMPILER}"
+                                    echo "BUILD_DAY=${BUILD_DAY}" # daily | weekly
+                                    echo "WORKING_DIR=${WORKING_DIR}"
+                                    echo "APP_DIR=${APP_DIR}"
+                                    echo "BUILD_DIR_DOW=${BUILD_DIR_DOW}"
+                                    set -x
+                                   
+                                    cd ${BUILD_DIR_DOW}
+                                    pwd
+                                    set +x
+                                    
+                                    echo "WM_REGRESSION_TESTS=<${WM_REGRESSION_TESTS}>"
+                                    echo "WM_OPERATIONAL_TESTS=<${WM_OPERATIONAL_TESTS}>"
+                                    
+                                    /usr/bin/time -p \
+                                        -o ${WORKSPACE}/${UFS_PLATFORM}-${UFS_COMPILER}-time-wm_test.json \
+                                        -f '{\n  "cpu": "%P"\n, "memMax": "%M"\n, "mem": {"text": "%X", "data": "%D", "swaps": "%W", "context": "%c", "waits": "%w"}\n, "pagefaults": {"major": "%F", "minor": "%R"}\n, "filesystem": {"inputs": "%I", "outputs": "%O"}\n, "time": {"real": "%e", "user": "%U", "sys": "%S"}\n}' \
+                                    ls -la | tee ./test-log.txt
+                                    status=${PIPESTATUS[0]}
+                                    
+                                    exit $status
+                                '''
+                                }
+                                //sh "WM_REGRESSION_TESTS=${run_regression_tests}" + ' bash --login "${WORKSPACE}/${UFS_PLATFORM}/tests/rt.sh"'
+                            }
+                        }
+
+                        post {
+                            success {
+                                echo "#### Test SUCCESS."
+                            }
+                            always {
+                                echo "#### Test COMPLETE."
+                            }
+                        }
+                    }
+                } // stages
+            } // matrix
+        } // stage
+    } // stages
+
+    post {
+        always {
+            script {
+                // Trigger another job to collect all build statistics
+                CI_JOB_NAME=env.JOB_NAME.replace("/${env.BRANCH_NAME}","")
+                CI_BRANCH_NAME=env.BRANCH_NAME.replace("%2F","%252F")
+                echo "post: Triggering ufs-weather-model/ufs-wm-metrics job for ${CI_JOB_NAME} on branch build ${CI_BRANCH_NAME}/${env.BUILD_NUMBER} ..."
+                /*
+                build job: '/ufs-weather-model/ufs-wm-metrics', parameters: [
+                        string(name: 'CI_JOB_NAME', value: "${CI_JOB_NAME}"),
+                        string(name: 'CI_BUILD_NUMBER', value: "${CI_BRANCH_NAME}/${env.BUILD_NUMBER}")
+                ], wait: false
+                */
+                echo "#### post: ufs-weather-model/ufs-wm-metrics COMPLETE."
+            }
+        }
+    }
+} // pipeline
+

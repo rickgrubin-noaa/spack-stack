@@ -1,0 +1,43 @@
+# Nightly SpackStack Activate and Test 
+
+GITHUB_URL=https://github.com/JCSDA/spack-stack.git/
+
+UFS_PLATFORM_FILTER=<node_choice>
+{
+all
+derecho
+gaea
+hera
+jet
+orion
+hercules
+pclusternoaav2use1
+azclusternoaav2use1
+gclusternoaav2usc1
+}
+
+UFS_COMPILER_FILTER=<compiler_choice>
+{
+all
+gnu
+intel
+}
+
+BRANCH_NAME="develop | release/1.5.1 | ..."
+
+StartOver="true|false"
+
+UpdateBuildCache="true|false"
+
+BUILD_DAY="daily|weekly"
+
+VERIFY_BUILD_CACHE=<how>  # UFS WeatherModel test suite
+{
+default
+control_p8
+
+comprehensive
+rt.conf
+}
+
+
