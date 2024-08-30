@@ -27,9 +27,9 @@ case $PLATFORM in
     BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/role-epic/spack-stack/hercules/build_cache}
     ;;
   orion)
-    COMPILERS=${COMPILERS:-"intel gcc"}
-#    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/role-epic/spack-stack/orion/build_cache}
-    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/rgrubin/build_cache}
+    #COMPILERS=${COMPILERS:-"intel gcc"}
+    COMPILERS=${COMPILERS:-"intel"}
+    BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-/work/noaa/epic/role-epic/spack-stack/orion/build_cache}
     function spack_install_exe {
       set +e
       # submit slurm job here
