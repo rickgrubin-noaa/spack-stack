@@ -63,10 +63,12 @@ packages:
     externals:
     - spec: git@2.43.5+tcltk
       prefix: /usr
-  # git-lfs:
-  #   externals:
-  #   - spec: git-lfs@2.10.0
-  #     prefix: /usr
+  git-lfs:
+    externals:
+    - spec: git-lfs@3.2.0
+      prefix: /collab1/data/Richard.Grubin/contrib/spack-stack-rocky9/git-lfs-3.2.0
+      modules:
+      - git-lfs/3.2.0
   gmake:
     externals:
     - spec: gmake@4.3
@@ -103,13 +105,13 @@ packages:
     externals:
     - spec: m4@1.4.19
       prefix: /usr
-  mysql:
-    buildable: False
-    externals:
-    - spec: mysql@8.0.31
-      prefix: /scratch1/NCEPDEV/global/spack-stack/apps/mysql-8.0.31
-      modules:
-      - mysql/8.0.31
+  # mysql:
+  #   buildable: False
+  #   externals:
+  #   - spec: mysql@8.0.31
+  #     prefix: /scratch1/NCEPDEV/global/spack-stack/apps/mysql-8.0.31
+  #     modules:
+  #     - mysql/8.0.31
   ncurses:
     externals:
     - spec: ncurses@6.2-10.20210508+termlib abi=5
@@ -126,12 +128,12 @@ packages:
     externals:
     - spec: rsync@3.2.3
       prefix: /usr
-   ruby:
-     externals:
-     - spec: ruby@3.2.3
-       prefix: /apps/ruby/3.2.3
-       modules:
-       - ruby/3.2.3
+  ruby:
+    externals:
+    - spec: ruby@3.2.3
+      prefix: /apps/ruby/3.2.3
+      modules:
+      - ruby/3.2.3
   sed:
     externals:
     - spec: sed@4.8

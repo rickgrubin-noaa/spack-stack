@@ -1,11 +1,11 @@
 compilers:
 - compiler:
-    spec: intel@2024.2.1
+    spec: oneapi@2024.2.1
     paths:
-      cc: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/icx
-      cxx: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/icpc
-      f77: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/ifort
-      fc: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/ifort
+      cc: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-compilers-2024.2.1-oqhstbmawnrsdw472p4pjsopj547o6xs/compiler/2024.2/bin/icx
+      cxx: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-compilers-2024.2.1-oqhstbmawnrsdw472p4pjsopj547o6xs/compiler/2024.2/bin/icpx
+      f77: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-compilers-2024.2.1-oqhstbmawnrsdw472p4pjsopj547o6xs/compiler/2024.2/bin/ifort
+      fc: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-compilers-2024.2.1-oqhstbmawnrsdw472p4pjsopj547o6xs/compiler/2024.2/bin/ifort
     flags: {}
     operating_system: rocky9
     modules:
@@ -13,7 +13,7 @@ compilers:
     environment:
       prepend_path:
         PATH: '/usr/bin'
-        LD_LIBRARY_PATH: '/usr/lib64'
+        LD_LIBRARY_PATH: '/usr/lib:/usr/lib64'
         CPATH: '/usr/include/c++/11'
     extra_rpaths: []
 - compiler:
@@ -25,5 +25,6 @@ compilers:
       fc:  /usr/bin/gfortran
     flags: {}
     operating_system: rocky9
+    modules: []
     environment: {}
     extra_rpaths: []
