@@ -23,6 +23,8 @@ packages:
     require: '@12.1.0 +python'
   bufr-query:
     require: '@0.0.2 +python'
+  bzip2:
+    require: '@1.0.6 +pic'
   cairo:
     require: '+pic'
   cdo:
@@ -148,6 +150,8 @@ packages:
     require: '@5.1.6 ~doc'
   # ncview - when adding information here, also check Orion
   # and Discover site configs
+  ncurses:
+    require: '@6.5'
   nemsio:
     require: '@2.5.4'
   nemsiogfs:

@@ -14,28 +14,33 @@ packages:
     externals:
     - spec: bash@5.1.8
       prefix: /usr
-  # berkeley-db:
+  berkeley-db:
   # not installed per: dnf list installed|grep -i db-devel
-  #   externals:
-  #   - spec: berkeley-db@5.3.21
-  #     prefix: /usr
-  bzip2:
     externals:
-    - spec: bzip2@1.0.8
-      prefix: /usr
+    #- spec: berkeley-db@5.3.21
+    - spec: berkeley-db@18.1.40
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/berkeley-db-18.1.40-tetbmt6446oglhqm4dnhpybup6ltpnno
+  #bzip2:
+  #  externals:
+  #  - spec: bzip2@1.0.8
+  #    prefix: /usr
   cpio:
     externals:
     - spec: cpio@2.13.90
+      prefix: /usr
+  curl:
+    externals:
+    - spec: curl@7.76.1
       prefix: /usr
   diffutils:
     externals:
     - spec: diffutils@3.7-12
       prefix: /usr
-  # doxygen:
+  doxygen:
   # not installed per: dnf list installed | grep -i doxygen
-  #   externals:
-  #   - spec: doxygen@1.8.5+graphviz~mscgen
-  #     prefix: /usr
+    externals:
+    - spec: doxygen@1.11.0+graphviz~mscgen
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/doxygen-1.11.0-dbhxblaakcrhvmlrbgixvapnagjb2vkx
   # ecflow::
   #   buildable: False
   #   externals:
@@ -55,10 +60,10 @@ packages:
     externals:
     - spec: gawk@5.1.0
       prefix: /usr
-  # ghostscript:
-  #   externals:
-  #   - spec: ghostscript@9.25
-  #     prefix: /usr
+  ghostscript:
+    externals:
+    - spec: ghostscript@10.03.1
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/ghostscript-10.03.1-womgp7wo5ax6gm3afwvf5szxy3w4ap4v
   git:
     externals:
     - spec: git@2.43.5+tcltk
@@ -89,10 +94,18 @@ packages:
     externals:
     - spec: krb5@1.21.1-1
       prefix: /usr
-  # libfuse:
-  #   externals:
-  #   - spec: libfuse@2.9.2
-  #     prefix: /usr
+  libfuse:
+    externals:
+    - spec: libfuse@3.16.2
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/libfuse-3.16.2-ojgtqzqj77qx3dejl6w6ebfgkfxklys4
+  libtirpc:
+    externals:
+    - spec: libtirpc@1.3.3
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/libtirpc-1.3.3-fpds3yq6y26a4svyiblqe6ram5js4rxf
+  libxaw:
+    externals:
+    - spec: libxaw@1.0.16
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/libxaw-1.0.16-i6i72n5zsfwifptwhjkuvqinzf6f3yqs
   libxpm:
     externals:
     - spec: libxpm@3.5.13-10
@@ -109,13 +122,17 @@ packages:
   #   buildable: False
   #   externals:
   #   - spec: mysql@8.0.31
-  #     prefix: /scratch1/NCEPDEV/global/spack-stack/apps/mysql-8.0.31
+  #     prefix: /collab1/data/Richard.Grubin/contrib/spack-stack-rocky9/mysql-8.0.31
   #     modules:
   #     - mysql/8.0.31
   ncurses:
     externals:
     - spec: ncurses@6.2-10.20210508+termlib abi=5
       prefix: /usr
+  openssl:
+    externals:
+    - spec: openssl@3.0.14
+      prefix: /collab1/data/Richard.Grubin/contrib/spack-stack-rocky9/miniconda3-3.12.4
   perl:
     externals:
     - spec: perl@5.32.1~cpanm+shared+threads
@@ -142,17 +159,21 @@ packages:
     externals:
     - spec: tar@1.34
       prefix: /usr
-  # texinfo:
-  #   externals:
-  #   - spec: texinfo@5.1
-  #     prefix: /usr
-  # texlive:
-  #   externals:
-  #   - spec: texlive@20130530
-  #     prefix: /usr
+  texinfo:
+    externals:
+    - spec: texinfo@7.1
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/texinfo-7.1-vtmy2xy3v7zn2ct4brekmagtpfbs5fmi
+  texlive:
+    externals:
+    - spec: texlive@20220321
+      prefix: /apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/texlive-20220321-nwvwftavgdpph7ifqemmapdnrji33a7c
   wget:
     externals:
     - spec: wget@1.21.1
+      prefix: /usr
+  which:
+    externals:
+    - spec: which@2.21
       prefix: /usr
   xz:
     externals:
