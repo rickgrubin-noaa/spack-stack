@@ -15,8 +15,8 @@ compilers:
         PATH: '/usr/bin'
         LD_LIBRARY_PATH: '/usr/lib:/usr/lib64'
         CPATH: '/usr/include/c++/11/x86_64-redhat-linux'
-      set:
-        I_MPI_ROOT: '/apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-mpi-2021.13.1-aalgxlsn6mj2wsdebjjv4fl4duddijzr/mpi/2021.13'
+      #set:
+        #I_MPI_ROOT: '/apps/spack-2024-09/linux-rocky9-x86_64/gcc-11.4.1/intel-oneapi-mpi-2021.13.1-aalgxlsn6mj2wsdebjjv4fl4duddijzr/mpi/2021.13'
     extra_rpaths: []
 - compiler:
     spec: gcc@11.4.1

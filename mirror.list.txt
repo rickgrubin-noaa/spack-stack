@@ -1,0 +1,3 @@
+local-source-mirror [sb] file:///collab1/data/Richard.Grubin/git/EPIC/spack-stack/spack/var/spack/environments/air_gapped_mirror_env/mirror
+local-source        [sb] file:///collab1/data/Richard.Grubin/contrib/spack-stack-rocky9/mirror
+spack-public        [s ] https://mirror.spack.io
