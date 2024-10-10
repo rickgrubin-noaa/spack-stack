@@ -23,6 +23,8 @@ packages:
     require: '@12.1.0 +python'
   bufr-query:
     require: '@0.0.2 +python'
+  bzip2:
+    require: '@1.0.6 +pic'
   cairo:
     require: '+pic'
   cdo:
@@ -33,6 +35,8 @@ packages:
   # Attention - when updating also check the various jcsda-emc-bundles env packages
   crtm:
     require: '+fix'
+  curl:
+    require: '@8.7.1'
   ecbuild:
     require: '@3.7.2'
   eccodes:
@@ -54,11 +58,13 @@ packages:
   # Also, check the acorn and derecho site configs which have esmf modifications.
   esmf:
     require:
-      - '~xerces ~pnetcdf +shared +external-parallelio'
+      - '~xerces ~pnetcdf +shared +external-parallelio +python'
       - any_of: ['@=8.6.1 snapshot=none', '@=8.7.0b11 snapshot=b11']
       - any_of: ['fflags="-fp-model precise" cxxflags="-fp-model precise"']
-        when: "%intel"
+        when: "%oneapi"
         message: "Extra ESMF compile options for Intel"
+        #when: "%intel"
+        #message: "Extra ESMF compile options for Intel"
       #- any_of: ['']
       #  when: "%gcc"
       #  message: "Extra ESMF compile options for GCC"
@@ -76,7 +82,8 @@ packages:
     require: '@2.6.4'
   fms:
     require:
-    - '@2024.02'
+    #- '@2024.02'
+    - '@2024.03'
     - 'precision=32,64 +quad_precision +gfs_phys +openmp +pic constants=GFS build_type=Release +deprecated_io'
   fontconfig:
     require: '+pic'
@@ -147,6 +154,8 @@ packages:
     require: '~hwloc'
   nco:
     require: '@5.1.6 ~doc'
+  ncurses:
+    require: '@6.5'
   # ncview - when adding information here, also check Orion
   # and Discover site configs
   nemsio:
@@ -238,6 +247,9 @@ packages:
     require: '+excel'
   py-pybind11:
     require: '@2.11.0'
+  # To avoid duplicate packages
+  py-ruamel-yaml:
+    require: '@0.17.16'
   # Pin the py-setuptools version to avoid duplicate Python packages
   py-setuptools:
     require: '@63.4.3'
