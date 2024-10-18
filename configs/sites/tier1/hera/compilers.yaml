@@ -1,31 +1,31 @@
 compilers:
 - compiler:
-    spec: intel@2021.5.0
+    spec: oneapi@2042.2.1
     paths:
-      cc: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/icc
-      cxx: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/icpc
-      f77: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/ifort
-      fc: /apps/oneapi/compiler/2022.0.2/linux/bin/intel64/ifort
+      cc: /apps/oneapi/compiler/2024.2/bin/icx
+      cxx: /apps/oneapi/compiler/2024.2/bin/icx
+      f77: /apps/oneapi/compiler/2024.2/bin/ifx
+      fc: /apps/oneapi/compiler/2024.2/bin/ifx
     flags: {}
     operating_system: rocky8
     modules:
-    - intel/2022.1.2
+    - intel/2024.2.1
     environment:
       prepend_path:
-        PATH: '/apps/gnu/gcc-9.2.0/bin'
-        LD_LIBRARY_PATH: '/apps/gnu/gcc-9.2.0/lib64'
-        CPATH: '/apps/gnu/gcc-9.2.0/include'
+        PATH: '/apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/bin'
+        LD_LIBRARY_PATH: '/apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/lib64'
+        CPATH: '/apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/include'
     extra_rpaths: []
 - compiler:
-    spec: gcc@9.2.0
+    spec: gcc@14.2.0
     paths:
-      cc: /apps/gnu/gcc-9.2.0/bin/gcc
-      cxx: /apps/gnu/gcc-9.2.0/bin/g++
-      f77: /apps/gnu/gcc-9.2.0/bin/gfortran
-      fc:  /apps/gnu/gcc-9.2.0/bin/gfortran
+      cc: /apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/bin/gcc
+      cxx: /apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/bin/g++
+      f77: /apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/bin/gfortran
+      fc: /apps/spack/linux-rocky8-x86_64/gcc-8.5.0/gcc-14.2.0-27o6emykdlx4ze3ooerg4bofx7lgn35p/bin/gfortran
     flags: {}
     operating_system: rocky8
     modules:
-    - gnu/9.2.0
+    - gnu/14.2.0
     environment: {}
     extra_rpaths: []
