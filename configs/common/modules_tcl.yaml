@@ -34,6 +34,7 @@ modules:
       - googletest
       - hwloc
       - inputproto
+      - intel-oneapi-runtime
       - kbproto
       - libaec
       - libbsd
@@ -73,6 +74,8 @@ modules:
       - perl
       - pkgconf
       - pkg-config
+      - py-cython
+      - py-poetry-core
       - qt
       - randrproto
       - readline
@@ -85,14 +88,13 @@ modules:
       - xtrans
       - xz
       - yaksa
-      # Do not create MPI modules - we create our own meta modules
+      # By default, do not create MPI modules
       - cray-mpich
-      - mpich
-      - openmpi
       - intel-mpi
       - intel-oneapi-mpi
-      # Do not create python modules - we create our own meta modules
-      - python
+      - mpich
+      - mpt
+      - openmpi
       hash_length: 0
       all:
         autoload: direct

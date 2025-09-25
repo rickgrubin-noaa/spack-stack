@@ -13,13 +13,13 @@ conflict("stack-intel-oneapi-mpi")
 conflict("stack-cray-mpich")
 conflict("stack-mpich")
 conflict("stack-mpt")
-
--- prerequisite modules
-@MODULELOADS@
-@MODULEPREREQS@
+conflict("stack-openmpi")
 
 -- spack compiler module hierarchy
 @MODULEPATHS@
+
+-- prerequisite modules
+@MODULELOADS@
 
 -- mpi wrapper environment variables
 setenv("MPICC",  "@MPICC@")
