@@ -21,8 +21,8 @@ import os
 this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 from spack.environment import active_environment
-from spack.build_systems.cargo import CargoPackage
-from spack.build_systems.python import PythonPackage
+from spack_repo.builtin.build_systems.cargo import CargoPackage
+from spack_repo.builtin.build_systems.python import PythonPackage
 from spack.package_base import PackageBase
 from spack.util.executable import Executable, which
 from llnl.util.filesystem import working_dir
