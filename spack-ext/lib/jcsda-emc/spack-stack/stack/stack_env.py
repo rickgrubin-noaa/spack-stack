@@ -253,6 +253,14 @@ class StackEnv(object):
         if self.site != "none":
             self._copy_site_includes()
 
+        # Copy any envrepo directory associated with the template (i.e., add-on env)
+        if self.template:
+            envrepo_path = os.path.join(self.template_path, "envrepo")
+            if os.path.isdir(envrepo_path):
+                logging.info(f"Copying envrepo/ from {self.template_path}")
+                target_envrepo_path = os.path.join(env_dir, "envrepo")
+                shutil.copytree(envrepo_path, target_envrepo_path, dirs_exist_ok=True)
+
         # Copy common include files
         self._copy_common_includes()
 
