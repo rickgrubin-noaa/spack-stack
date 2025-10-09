@@ -31,12 +31,12 @@ packages:
     buildable: false
     externals:
     - spec: gcc@12.1.0 languages:='c,c++,fortran'
-      prefix: /opt/cray/pe/gcc/12.1.0
+      prefix: /opt/cray/pe/gcc/12.1.0/snos/
       extra_attributes:
         compilers:
-          c: /opt/cray/pe/gcc/12.1.0/bin/gcc
-          cxx: /opt/cray/pe/gcc/12.1.0/bin/g++
-          fortran: /opt/cray/pe/gcc/12.1.0/bin/gfortran
+          c: /opt/cray/pe/gcc/12.1.0/snos/bin/gcc
+          cxx: /opt/cray/pe/gcc/12.1.0/snos/bin/g++
+          fortran: /opt/cray/pe/gcc/12.1.0/snos/bin/gfortran
         environment:
           set:
             # OpenSUSE on WCOSS2 machines sets CONFIG_SITE so
@@ -45,9 +45,6 @@ packages:
             CONFIG_SITE: ''
   gcc-runtime:
     require: '%gcc@12.1.0'
-    externals:
-    - spec: gcc-runtime@12.1.0
-      prefix: /opt/cray/pe/gcc/12.1.0
   ### General package/provider settings & MPI external
   mpi:
     buildable: false
