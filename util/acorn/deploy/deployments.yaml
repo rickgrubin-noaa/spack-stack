@@ -1,4 +1,4 @@
-core_deployments:
+deployments:
   - template: "unified-dev"
     compilers: ["oneapi-2024.2.1"]
     packages_to_install:
@@ -6,8 +6,9 @@ core_deployments:
     - global-workflow-env
     - gsi-env
     - madis
+    walltime: 03:00:00
 
-#addon_deployments:
-#  - template: "test-addon"
-#    compilers: ["oneapi-2024.2.1"]
-#    upstream: ["unified-dev"]
+batch_config:
+  account: NCEPLIBS-DEV
+  queue: dev
+  default_walltime: 02:00:00
