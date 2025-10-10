@@ -81,7 +81,7 @@ def get_create_env_settings(env_dir_basename, deployment, deployments):
 
     return config_dict
 
-def run_batch_install(batch_config, deployment, env_dir_full_path, specs_str, logfile, logfilepath):
+def run_batch_install(batch_config, deployment, env_dir_full_path, specs_str, logfile, logfilepath, suffix=".batch_install"):
     if "walltime" in deployment:
         walltime = deployment["walltime"]
     elif "default_walltime" in batch_config:
@@ -90,8 +90,8 @@ def run_batch_install(batch_config, deployment, env_dir_full_path, specs_str, lo
         assert False, "Set deployment-specific walltime or batch_config:default_walltime" 
     cmd = [
         "qsub",
-        "-o", logfilepath + ".batch_install",
-        "-e", logfilepath + ".batch_install",
+        "-o", logfilepath + suffix,
+        "-e", logfilepath + suffix,
         "-A", batch_config["account"],
         "-q", batch_config["queue"],
         "-l", "walltime=" + walltime + ",select=1:ncpus=12",
@@ -185,7 +185,7 @@ for env_dir_basename, deployment in deployments.items():
         env.install_specs(specs)
     else:
         if not args.skip_go_rust_handling:
-            run_batch_install(deployments_yaml["batch_config"], deployment, env_dir_full_path, ["rust", "go"], logfile, logfilepath)
+            run_batch_install(deployments_yaml["batch_config"], deployment, env_dir_full_path, ["rust", "go"], logfile, logfilepath, suffix=".rustgo")
             logfile.flush()
             shell_env = os.environ.copy()
             shell_env["SPACK_ENV"] = env_dir_full_path
