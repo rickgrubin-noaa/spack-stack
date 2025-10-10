@@ -186,8 +186,11 @@ for env_dir_basename, deployment in deployments.items():
     else:
         if not args.skip_go_rust_handling:
             run_batch_install(deployments_yaml["batch_config"], deployment, env_dir_full_path, ["rust", "go"], logfile, logfilepath)
+            shell_env = os.environ.copy()
+            shell_env["SPACK_ENV"] = env_dir_full_path
             subprocess.run(
                 os.path.join(spack_stack_dir, "util", "fetch_cargo_deps.py"),
+                env=shell_env,
                 stdout=logfile,
                 stderr=logfile,
                 check=True,
@@ -195,6 +198,7 @@ for env_dir_basename, deployment in deployments.items():
             )
             subprocess.run(
                 os.path.join(spack_stack_dir, "util", "fetch_go_deps.py"),
+                env=shell_env,
                 stdout=logfile,
                 stderr=logfile,
                 check=True,
