@@ -186,6 +186,7 @@ for env_dir_basename, deployment in deployments.items():
     else:
         if not args.skip_go_rust_handling:
             run_batch_install(deployments_yaml["batch_config"], deployment, env_dir_full_path, ["rust", "go"], logfile, logfilepath)
+            logfile.flush()
             shell_env = os.environ.copy()
             shell_env["SPACK_ENV"] = env_dir_full_path
             subprocess.run(
@@ -196,6 +197,7 @@ for env_dir_basename, deployment in deployments.items():
                 check=True,
                 text=True,
             )
+            logfile.flush()
             subprocess.run(
                 os.path.join(spack_stack_dir, "util", "fetch_go_deps.py"),
                 env=shell_env,
@@ -204,7 +206,9 @@ for env_dir_basename, deployment in deployments.items():
                 check=True,
                 text=True,
             )
+            logfile.flush()
         run_batch_install(deployments_yaml["batch_config"], deployment, env_dir_full_path, specs_str, logfile, logfilepath)
+        logfile.flush()
 
     # Generate modules
     print(f"... writing package modules ...")
@@ -215,6 +219,7 @@ for env_dir_basename, deployment in deployments.items():
         check=True,
         text=True,
     )
+    logfile.flush()
 
     # Meta modules
     print(f"... writing metamodules ...")
