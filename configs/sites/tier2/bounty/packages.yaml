@@ -1,7 +1,5 @@
 packages:
   # Modification of common packages
-  zlib-api:
-    buildable: False
 
   # All other packages listed alphabetically
   autoconf:
@@ -84,11 +82,10 @@ packages:
     - spec: pkgconf@1.7.3
       prefix: /usr
   qt:
-    # Yet another bug in spack v1 ... grrr ...
-    #buildable: False
+    buildable: False
     externals:
     - spec: qt@5.15.9
-      prefix: /usr/lib64/qt5
+      prefix: /usr
   sed:
     externals:
     - spec: sed@4.8
@@ -104,9 +101,4 @@ packages:
   wget:
     externals:
     - spec: wget@1.21.1
-      prefix: /usr
-  zlib:
-    buildable: False
-    externals:
-    - spec: zlib@1.2.11
       prefix: /usr

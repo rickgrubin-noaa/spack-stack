@@ -2,27 +2,27 @@ packages:
   mpi:
     buildable: false
     require:
-    - intel-oneapi-mpi@2021.13
+    - intel-oneapi-mpi@2021.17
   intel-oneapi-runtime:
     buildable: false
     externals:
-    - spec: intel-oneapi-runtime@2024.2.1
-      prefix: /cm/shared/apps/intel/oneapi-2024.2.1
+    - spec: intel-oneapi-runtime@2025.3.0
+      prefix: /gpfs/neptune/spack-stack/oneapi-2025.3.0
   intel-oneapi-compilers:
     buildable: false
     externals:
-    - spec: intel-oneapi-compilers@2024.2.1
-      prefix: /cm/shared/apps/intel/oneapi-2024.2.1
+    - spec: intel-oneapi-compilers@2025.3.0
+      prefix: /gpfs/neptune/spack-stack/oneapi-2025.3.0
       modules:
-      - intel-oneapi-2024.2.1
-      - tbb/2021.13
-      - compiler-rt/2024.2.1
-      - compiler/2024.2.1
+      - umf/1.0.2
+      - tbb/2022.3
+      - compiler-rt/2025.3.0
+      - compiler/2025.3.0
       extra_attributes:
         compilers:
-          c: /cm/shared/apps/intel/oneapi-2024.2.1/compiler/2024.2/bin/icx
-          cxx: /cm/shared/apps/intel/oneapi-2024.2.1/compiler/2024.2/bin/icpx
-          fortran: /cm/shared/apps/intel/oneapi-2024.2.1/compiler/2024.2/bin/ifort
+          c: /gpfs/neptune/spack-stack/oneapi-2025.3.0/compiler/2025.3/bin/icx
+          cxx: /gpfs/neptune/spack-stack/oneapi-2025.3.0/compiler/2025.3/bin/icpx
+          fortran: /gpfs/neptune/spack-stack/oneapi-2025.3.0/compiler/2025.3/bin/ifx
         environment:
           prepend_path:
             PATH: /cm/local/apps/gcc/11.2.0/bin
@@ -48,13 +48,15 @@ packages:
   intel-oneapi-mpi:
     buildable: false
     externals:
-    - spec: intel-oneapi-mpi@2021.13
-      prefix: /cm/shared/apps/intel/oneapi-2024.2.1
+    - spec: intel-oneapi-mpi@2021.17
+      prefix: /gpfs/neptune/spack-stack/oneapi-2025.3.0
       modules:
-      - mpi/2021.13
+      - mpi/2021.17
       - slurm
   intel-oneapi-mkl:
     buildable: false
     externals:
-    - spec: intel-oneapi-mkl@2024.2
-      prefix: /cm/shared/apps/intel/oneapi-2024.2.1
+    - spec: intel-oneapi-mkl@2025.3
+      prefix: /gpfs/neptune/spack-stack/oneapi-2025.3.0
+      modules:
+      - mkl/2025.3

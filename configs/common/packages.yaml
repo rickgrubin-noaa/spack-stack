@@ -263,6 +263,11 @@ packages:
     p4est:
       require:
       - '@2.8.7'
+    # Earlier versions of pango don't build on Blueback because of
+    # a bug in finding the correct Python interpreter from spack.
+    pango:
+      require:
+      - '@1.54:'
     parallelio:
       require:
       - '@2.6.2'
@@ -417,7 +422,7 @@ packages:
     # Need extradeps for grib-utils, enable by default to avoid duplicate packages
     w3emc:
       require:
-      - '@2.10.0'
+      - '@2.11.0'
       - precision=4,d,8 +extradeps
     w3nco:
       require:
@@ -426,6 +431,7 @@ packages:
     wgrib2:
       require:
       - '@3.6.0'
+      - +ipolates +netcdf
     wrf-io:
       require:
       - '@1.3.0'
