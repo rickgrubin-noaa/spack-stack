@@ -234,7 +234,7 @@ jobs:
 
           export ENVNAME=ue-gcc-11.4.0
           export ENVDIR=$PWD/envs/${ENVNAME}
-          ls -l ${ENVDIR}/install/modulefiles/Core
+          ls -l ${ENVDIR}/modules/Core
 
           module use ${ENVDIR}/modules/Core
           module load stack-gcc/11.4.0

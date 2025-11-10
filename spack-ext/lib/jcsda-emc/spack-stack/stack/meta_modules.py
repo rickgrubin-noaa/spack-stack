@@ -52,8 +52,8 @@ SUBSTITUTES_TEMPLATE = {
     "MPIROOT": "",
 }
 
-# Aliases to shorten module paths. These aliases must match the compiler
-# and MPI name translations in configs/common/modules_{tcl,lmod}.yaml
+# Aliases to shorten module paths for tcl modules. These aliases must match
+# the compiler and MPI name translations in configs/common/modules_tcl.yaml
 ALIASES = {
     "none" : "none",
     # Compilers
@@ -246,8 +246,11 @@ def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi
                 for compiler in compiler_list:
                     # First, compiler-dependent modules
                     (compiler_name, compiler_version) = compiler.split("@")
-                    # Module paths are short names
-                    compiler_alias = ALIASES[compiler_name]
+                    # Module paths are short names for tcl modules
+                    if module_choice == "lmod":
+                        compiler_alias = compiler_name
+                    else:
+                        compiler_alias = ALIASES[compiler_name]
                     cmd = "sed -i {4} 's#{0} {1}/{2}/#{0} #g' {3}".format(
                         pattern, compiler_alias, compiler_version, filepath, sed_syntax_fix
                     )
@@ -257,8 +260,11 @@ def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi
                     # If mpi_provider is not None, also do compiler+mpi-dependent modules
                     if not mpi_provider:
                         continue
-                    # Module paths are short names
-                    mpi_alias = ALIASES[mpi_provider.name]
+                    # Module paths are short names for tcl modules
+                    if module_choice == "lmod":
+                        mpi_alias = mpi_provider.name
+                    else:
+                        mpi_alias = ALIASES[mpi_provider.name]
                     cmd = "sed -i {6} 's#{0} {1}/{2}/{3}/{4}/#{0} #g' {5}".format(
                         pattern,
                         mpi_alias,
@@ -400,8 +406,11 @@ def setup_meta_modules():
     for compiler in compilers:
         logging.info(f"  ... configuring compiler {compiler.name}@{compiler.version}")
 
-        # Short names for modulepaths
-        compiler_alias = ALIASES[compiler.name]
+        # Module paths are short names for tcl modules
+        if module_choice == "lmod":
+            compiler_alias = compiler.name
+        else:
+            compiler_alias = ALIASES[compiler.name]
 
         modulepath_save = os.path.join(module_dir, compiler_alias, str(compiler.version))
         if not os.path.isdir(modulepath_save):
@@ -513,7 +522,7 @@ def setup_meta_modules():
         # compiler dependencies; remove the compiler/mpi prefices from the moduless
         if module_choice == "tcl":
 
-            # Short names for modulepaths
+            # Module paths are short names for tcl modules
             mpi_alias = ALIASES[mpi_provider.name]
 
             modulepath_save = os.path.join(module_dir, mpi_alias, str(mpi_provider.version), "none", "none")
@@ -534,8 +543,11 @@ def setup_meta_modules():
                 )
             )
 
-            # Short names for modulepaths
-            compiler_alias = ALIASES[compiler.name]
+            # Module paths are short names for tcl modules
+            if module_choice == "lmod":
+                mpi_alias = compiler.name
+            else:
+                compiler_alias = ALIASES[compiler.name]
 
             # Spack mpi+compiler module hierarchy
             modulepath_save = os.path.join(

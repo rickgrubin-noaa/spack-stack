@@ -242,7 +242,7 @@ jobs:
 
           export ENVNAME=ue-oneifx-2024.2.0
           export ENVDIR=$PWD/envs/${ENVNAME}
-          ls -l ${ENVDIR}/install/modulefiles/Core
+          ls -l ${ENVDIR}/modules/Core
 
           module use ${ENVDIR}/modules/Core
           module load stack-intel-oneapi-compilers/2024.2.0
