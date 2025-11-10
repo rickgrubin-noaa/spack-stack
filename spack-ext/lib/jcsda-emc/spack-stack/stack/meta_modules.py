@@ -52,13 +52,22 @@ SUBSTITUTES_TEMPLATE = {
     "MPIROOT": "",
 }
 
-
-# DH* TODO: IMPORT THIS FROM SPACK, THEY MAINTAIN THE SAME DICTIONARY
-COMPILER_TRANSLATION_TABLE = {
+# Aliases to shorten module paths. These aliases must match the compiler
+# and MPI name translations in configs/common/modules_{tcl,lmod}.yaml
+ALIASES = {
+    "none" : "none",
+    # Compilers
     "gcc" : "gcc",
-    "clang" : "llvm",
-    "intel" : "intel-oneapi-compilers-classic",
-    "oneapi" : "intel-oneapi-compilers",
+    "intel-oneapi-compilers-classic" : "intel",
+    "intel-oneapi-compilers" : "oneapi",
+    "llvm" : "llvm",
+    # MPI
+    "cray-mpich" : "cray-mpich",
+    # Do we still need intel-mpi, and if yes, use the same impi?
+    "intel-oneapi-mpi" : "impi",
+    "mpich" : "mpich",
+    "mpt" : "mpt",
+    "openmpi" : "openmpi",
 }
 
 
@@ -237,8 +246,10 @@ def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi
                 for compiler in compiler_list:
                     # First, compiler-dependent modules
                     (compiler_name, compiler_version) = compiler.split("@")
+                    # Module paths are short names
+                    compiler_alias = ALIASES[compiler_name]
                     cmd = "sed -i {4} 's#{0} {1}/{2}/#{0} #g' {3}".format(
-                        pattern, compiler_name, compiler_version, filepath, sed_syntax_fix
+                        pattern, compiler_alias, compiler_version, filepath, sed_syntax_fix
                     )
                     status = os.system(cmd)
                     if not status == 0:
@@ -246,11 +257,13 @@ def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi
                     # If mpi_provider is not None, also do compiler+mpi-dependent modules
                     if not mpi_provider:
                         continue
+                    # Module paths are short names
+                    mpi_alias = ALIASES[mpi_provider.name]
                     cmd = "sed -i {6} 's#{0} {1}/{2}/{3}/{4}/#{0} #g' {5}".format(
                         pattern,
-                        mpi_provider.name,
+                        mpi_alias,
                         mpi_provider.version,
-                        compiler_name,
+                        compiler_alias,
                         compiler_version,
                         filepath,
                         sed_syntax_fix,
@@ -387,7 +400,10 @@ def setup_meta_modules():
     for compiler in compilers:
         logging.info(f"  ... configuring compiler {compiler.name}@{compiler.version}")
 
-        modulepath_save = os.path.join(module_dir, compiler.name, str(compiler.version))
+        # Short names for modulepaths
+        compiler_alias = ALIASES[compiler.name]
+
+        modulepath_save = os.path.join(module_dir, compiler_alias, str(compiler.version))
         if not os.path.isdir(modulepath_save):
             os.makedirs(modulepath_save)
         logging.info("  ... ... appending {} to MODULEPATHS_SAVE".format(modulepath_save))
@@ -496,7 +512,11 @@ def setup_meta_modules():
         # For tcl, append modulepath for external specs and for specs without
         # compiler dependencies; remove the compiler/mpi prefices from the moduless
         if module_choice == "tcl":
-            modulepath_save = os.path.join(module_dir, mpi_provider.name, str(mpi_provider.version), "none", "none")
+
+            # Short names for modulepaths
+            mpi_alias = ALIASES[mpi_provider.name]
+
+            modulepath_save = os.path.join(module_dir, mpi_alias, str(mpi_provider.version), "none", "none")
             if not os.path.isdir(modulepath_save):
                 os.makedirs(modulepath_save)
             logging.info("  ... appending {} to MODULEPATHS_SAVE".format(modulepath_save))
@@ -514,9 +534,12 @@ def setup_meta_modules():
                 )
             )
 
+            # Short names for modulepaths
+            compiler_alias = ALIASES[compiler.name]
+
             # Spack mpi+compiler module hierarchy
             modulepath_save = os.path.join(
-                module_dir, mpi_provider.name, str(mpi_provider.version), compiler.name, str(compiler.version)
+                module_dir, mpi_alias, str(mpi_provider.version), compiler_alias, str(compiler.version)
             )
             if not os.path.isdir(modulepath_save):
                 os.makedirs(modulepath_save)
@@ -537,7 +560,7 @@ def setup_meta_modules():
 
             # Path and name for mpi module file
             mpi_module_dir = os.path.join(
-                module_dir, compiler.name, str(compiler.version), "stack-" + mpi_provider.name
+                module_dir, compiler_alias, str(compiler.version), "stack-" + mpi_provider.name
             )
             mpi_module_file = os.path.join(
                 mpi_module_dir, str(mpi_provider.version).split("-")[0] + MODULE_FILE_EXTENSION[module_choice]
