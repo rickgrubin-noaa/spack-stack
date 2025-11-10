@@ -229,7 +229,7 @@ def get_preferred_compiler():
     return preferred_compiler
 
 
-def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi_provider):
+def remove_compiler_prefices_from_tcl_modulefiles(modulepath, compiler_list, mpi_provider, module_choice):
     """Remove compiler and mpi prefices from tcl modulefiles in modulepath"""
     logging.info(f"  ... ... removing compiler/mpi prefices from tcl modulefiles in {modulepath}")
     module_replace_patterns = ["is-loaded", "module load", "depends-on"]
@@ -400,7 +400,8 @@ def setup_meta_modules():
         remove_compiler_prefices_from_tcl_modulefiles(
             modulepath_save,
             compiler_list,
-            mpi_provider = None
+            mpi_provider = None,
+            module_choice = module_choice
         )
 
     for compiler in compilers:
@@ -423,7 +424,8 @@ def setup_meta_modules():
             remove_compiler_prefices_from_tcl_modulefiles(
                 modulepath_save,
                 compiler_list,
-                mpi_provider = None
+                mpi_provider = None,
+                module_choice = module_choice
             )
 
         # The remainder of the loop is only needed for the preferred compiler
@@ -533,7 +535,8 @@ def setup_meta_modules():
             remove_compiler_prefices_from_tcl_modulefiles(
                 modulepath_save,
                 compiler_list,
-                mpi_provider = mpi_provider
+                mpi_provider = mpi_provider,
+                module_choice = module_choice
             )
 
         for compiler in compilers:
@@ -563,7 +566,8 @@ def setup_meta_modules():
                 remove_compiler_prefices_from_tcl_modulefiles(
                     modulepath_save,
                     compiler_list,
-                    mpi_provider = mpi_provider
+                    mpi_provider = mpi_provider,
+                    module_choice = module_choice
                 )
 
             # The remainder of the loop is only needed for the preferred compiler
