@@ -24,10 +24,10 @@ copyright = '2025 '
 author = 'spack-stack collaboration'
 
 # The short X.Y version
-version = 'dev'
+version = '2.0'
 
 # The full version, including alpha/beta/rc tags
-release = 'develop'
+release = '2.0.0'
 
 numfig = True
 
