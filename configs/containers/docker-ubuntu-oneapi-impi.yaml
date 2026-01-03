@@ -292,12 +292,17 @@ spack:
         spack find 2>&1 | tee /root/spack_find.out
       final: |
         # Install Intel compilers and MPI library and pynacl
-        RUN apt update  && apt install apt-utils && \
-        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
-        apt update && \
-        apt install intel-oneapi-compiler-dpcpp-cpp-2024.2 intel-oneapi-compiler-fortran-2024.2 intel-oneapi-mpi-devel-2021.13 intel-oneapi-tbb-devel-2021.13 intel-oneapi-mkl-devel-2024.2 -y && \
-        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
+        RUN apt update && apt install apt-utils && \
+            wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+            echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
+            apt update && \
+            apt install intel-oneapi-compiler-dpcpp-cpp-2025.3 \
+                        intel-oneapi-compiler-fortran-2025.3 \
+                        intel-oneapi-mpi-devel-2021.17 \
+                        intel-oneapi-tbb-devel-2022.3 \
+                        intel-oneapi-mkl-devel-2025.3 -y && \
+        echo 'source /etc/profile.d/modules.sh && module use /opt/intel/oneapi/modulefiles' > /etc/profile.d/z01_oneapi_modules.sh
+        RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 && \
         update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100 && \
         rm /usr/bin/cpp && ln -s /usr/bin/cpp-13 /usr/bin/cpp && \
