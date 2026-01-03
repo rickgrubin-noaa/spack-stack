@@ -7,48 +7,77 @@ spack:
     build_jobs: 2
     connect_timeout: 60
 
-  compilers:
-  - compiler:
-      spec: gcc@=13.4.0
-      paths:
-        cc: /usr/bin/gcc
-        cxx: /usr/bin/g++
-        f77: /usr/bin/gfortran
-        fc: /usr/bin/gfortran
-      flags: {}
-      operating_system: ubuntu24.04
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-  - compiler:
-      spec: oneapi@=2024.2.1
-      paths:
-        cc: /opt/intel/oneapi/compiler/2024.2/bin/icx
-        cxx: /opt/intel/oneapi/compiler/2024.2/bin/icpx
-        #f77: /opt/intel/oneapi/compiler/2024.2/bin/ifx
-        #fc: /opt/intel/oneapi/compiler/2024.2/bin/ifx
-        f77: /opt/intel/oneapi/compiler/2024.2/bin/ifort
-        fc: /opt/intel/oneapi/compiler/2024.2/bin/ifort
-      flags: {}
-      operating_system: ubuntu24.04
-      target: x86_64
-      modules: []
-      environment:
-        # change to append_path once relevant PR is merged
-        append_path:
-          CPATH: /opt/intel/oneapi/compiler/2024.2/opt/compiler/include/intel64
-      extra_rpaths: []
-
   # Basic package config from configs/common/packages.yaml
   # Additional package config for container
   packages:
     all:
-      require: '%oneapi'
+      prefer:
+      - '%oneapi'
       target: [core2]
-      compiler: [oneapi@2024.2.1, gcc@13.4.0]
       providers:
         mpi: [intel-oneapi-mpi@2021.13]
+    intel-oneapi-compilers:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-compilers@2025.3.0
+        prefix: /opt/intel/oneapi
+        modules:
+        - umf/1.0.2
+        - tbb/2022.3
+        - compiler-rt/2025.3.0
+        - compiler/2025.3.0
+        extra_attributes:
+          compilers:
+            fortran: /opt/intel/oneapi/compiler/2025.3/bin/ifx
+            c: /opt/intel/oneapi/compiler/2025.3/bin/icx
+            cxx: /opt/intel/oneapi/compiler/2025.3/bin/icpx
+    mpi:
+      require: [intel-oneapi-mpi@2021.17]
+    openmpi:
+      buildable: false
+    mpich:
+      buildable: false
+    gcc:
+      externals:
+      - spec: gcc@13.3.0 languages:='c,c++,fortran'
+        prefix: /usr
+        extra_attributes:
+          compilers:
+            c: /usr/bin/gcc
+            cxx: /usr/bin/g++
+            fortran: /usr/bin/gfortran
+      buildable: false
+    intel-oneapi-mkl:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-mkl@2025.3
+        prefix: /opt/intel/oneapi
+        modules:
+        - mkl/2025.3
+    intel-oneapi-mpi:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-mpi@2021.17
+        modules:
+        - mpi/2021.17
+        prefix: /opt/intel/oneapi
+    intel-oneapi-tbb:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-tbb@2022.3
+        prefix: /opt/intel/oneapi
+        modules:
+        - tbb/2022.3
+    intel-oneapi-runtime:
+      buildable: false
+      externals:
+      - spec: intel-oneapi-runtime@2025.3.0
+        prefix: /opt/intel/oneapi
+        modules:
+        - compiler-rt/2025.3.0
+    sp:
+      require:
+      - +pic
     autoconf:
       externals:
       - spec: autoconf@2.71
@@ -71,7 +100,7 @@ spack:
     diffutils:
       buildable: false
       externals:
-      - spec: diffutils@3.8
+      - spec: diffutils@3.10
         prefix: /usr
     ectrans:
       require:
@@ -79,46 +108,21 @@ spack:
     git:
       buildable: false
       externals:
-      - spec: git@2.34.1~tcltk
+      - spec: git@2.43.0~tcltk
         prefix: /usr
     git-lfs:
       buildable: false
       externals:
-      - spec: git-lfs@3.0.2
+      - spec: git-lfs@3.4.1
         prefix: /usr
     gmake:
       externals:
       - spec: gmake@4.3
         prefix: /usr
-    gsibec:
-      require:
-      - '+mkl'
     # Building icu4c with oneapi intel causes segfault.
     icu4c:
       require:
       - '%gcc'
-    intel-oneapi-runtime:
-      buildable: false
-      externals:
-      - spec: intel-oneapi-runtime@2024.2.1%oneapi@2024.2.1
-        prefix: /opt/intel/oneapi
-    intel-oneapi-mkl:
-      buildable: false
-      externals:
-      - spec: intel-oneapi-mkl@2024.2
-        prefix: /opt/intel/oneapi
-    intel-oneapi-mpi:
-      buildable: false
-      externals:
-      - spec: intel-oneapi-mpi@2021.13%oneapi@2024.2.1
-        prefix: /opt/intel/oneapi
-    intel-oneapi-tbb:
-      buildable: false
-      externals:
-      - spec: intel-oneapi-tbb@2021.13
-        prefix: /opt/intel/oneapi
-    mpi:
-      buildable: False
     libmd:
       require:
       - '%gcc'
@@ -213,6 +217,7 @@ spack:
       - qt5dxcb-plugin
       - libcurl4-openssl-dev
       - wget
+      - environment-modules
 
       final:
       - autopoint
@@ -251,26 +256,21 @@ spack:
       - vim
       - nano
       - less
+      - environment-modules
 
     # Extra instructions
     extra_instructions:
       pre_build: |
-        # Copy the spack-stack extension repo into the spack code
-        COPY spack-ext-SPACK_STACK_HASH/repos/spack-stack $SPACK_ROOT/var/spack/repos/spack-stack
-        # Register spack-stack extension repo
-        RUN spack repo add $SPACK_ROOT/var/spack/repos/spack-stack --scope defaults
-        # Install Intel compilers and MPI library
         RUN apt update && apt install apt-utils && \
-        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
-        apt update && \
-        apt install intel-oneapi-compiler-dpcpp-cpp-2024.2 intel-oneapi-compiler-fortran-2024.2 intel-oneapi-mpi-devel-2021.13 intel-oneapi-tbb-devel-2021.13 intel-oneapi-mkl-devel-2024.2 -y && \
-        # Intel package versions reported by apt cache policy
-        #   compiler - 2024.2.1
-        #   fortran  - 2024.2.1
-        #   mpi      - 2021.13.1
-        #   tbb      - 2021.13.1
-        #   mkl      - 2024.2.2
+            wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+            echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
+            apt update && \
+            apt install intel-oneapi-compiler-dpcpp-cpp-2025.3 \
+                        intel-oneapi-compiler-fortran-2025.3 \
+                        intel-oneapi-mpi-devel-2021.17 \
+                        intel-oneapi-tbb-devel-2022.3 \
+                        intel-oneapi-mkl-devel-2025.3 -y && \
+        echo 'source /etc/profile.d/modules.sh && module use /opt/intel/oneapi/modulefiles' > /etc/profile.d/z01_oneapi_modules.sh && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 && \
         update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100 && \

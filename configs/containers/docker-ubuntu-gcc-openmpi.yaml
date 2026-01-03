@@ -7,53 +7,46 @@ spack:
     build_jobs: 2
     connect_timeout: 60
 
-  compilers:
-  - compiler:
-      spec: gcc@13.3.0
-      paths:
-        cc: /usr/bin/gcc-13
-        cxx: /usr/bin/g++-13
-        f77: /usr/bin/gfortran-13
-        fc: /usr/bin/gfortran-13
-      flags: {}
-      operating_system: ubuntu24.04
-      modules: []
-      environment: {}
-      extra_rpaths: []
-
   # Basic package config from configs/common/packages.yaml
   # Additional package config for container
   packages:
     all:
-      require: '%gcc'
-      target: [x86_64]
+      prefer:
+      - '%gcc'
+      target: [core2]
       providers:
-        mpi: [openmpi@5.0.5]
-      compiler: [gcc@13.3.0]
+        mpi: [openmpi@5.0.8]
     gcc:
       buildable: false
       externals:
-      - spec: gcc@13.3.0
+      - spec: gcc@13.3.0 languages:='c,c++,fortran'
         prefix: /usr
+        extra_attributes:
+          compilers:
+            c: /usr/bin/gcc
+            cxx: /usr/bin/g++
+            fortran: /usr/bin/gfortran
     gcc-runtime:
       buildable: false
       externals:
       - spec: gcc-runtime@13.3.0
         prefix: /usr
+    mpi:
+      require: [openmpi@5.0.8]
     diffutils:
       buildable: false
       externals:
-      - spec: diffutils@3.8
+      - spec: diffutils@3.10
         prefix: /usr
     git:
       buildable: false
       externals:
-      - spec: git@2.34.1~tcltk
+      - spec: git@2.43.0~tcltk
         prefix: /usr
     git-lfs:
       buildable: false
       externals:
-      - spec: git-lfs@3.0.2
+      - spec: git-lfs@3.4.1
         prefix: /usr
     llvm:
       buildable: false
@@ -74,7 +67,92 @@ spack:
     wget:
       buildable: false
       externals:
-      - spec: wget@1.21.2
+      - spec: wget@1.21.4
+        prefix: /usr
+    grep:
+      buildable: false
+      externals:
+      - spec: grep@3.11
+        prefix: /usr
+    coreutils:
+      buildable: false
+      externals:
+      - spec: coreutils@9.4
+        prefix: /usr
+    perl:
+      buildable: false
+      externals:
+      - spec: perl@5.38.2
+        prefix: /usr
+    #m4:
+    #  buildable: false
+    #   externals:
+    #  - spec: m4@1.4.19
+    #     prefix: /usr
+    findutils:
+      buildable: false
+      externals:
+      - spec: findutils@4.9.0
+        prefix: /usr
+    sed:
+      buildable: false
+      externals:
+      - spec: sed@4.9
+        prefix: /usr
+    gmake:
+      buildable: false
+      externals:
+      - spec: gmake@4.3
+        prefix: /usr
+    automake:
+      buildable: false
+      externals:
+      - spec: automake@1.16.5
+        prefix: /usr
+    binutils:
+      buildable: false
+      externals:
+      - spec: binutils@2.42+gold~headers
+        prefix: /usr
+    autoconf:
+      buildable: false
+      externals:
+      - spec: autoconf@2.71
+        prefix: /usr
+    gawk:
+      buildable: false
+      externals:
+      - spec: gawk@5.2.1
+        prefix: /usr
+    gettext:
+      buildable: false
+      externals:
+      - spec: gettext@0.21
+        prefix: /usr
+    groff:
+      buildable: false
+      externals:
+      - spec: groff@1.23.0
+        prefix: /usr
+    libtool:
+      buildable: false
+      externals:
+      - spec: libtool@2.4.7
+        prefix: /usr
+    pkgconf:
+      buildable: false
+      externals:
+      - spec: pkgconf@1.8.1
+        prefix: /usr
+    tar:
+      buildable: false
+      externals:
+      - spec: tar@1.35
+        prefix: /usr
+    jq:
+      buildable: false
+      externals:
+      - spec: jq@1.7.1
         prefix: /usr
 
   specs: []
@@ -99,8 +177,8 @@ spack:
     images:
       os: ubuntu:24.04
       spack:
-        url: https://github.com/jcsda/spack
-        ref: spack-stack-dev
+        url: https://github.com/jcsda/spack-stack
+        ref: origin/release/2.0
         resolve_sha: true
 
     # Whether or not to strip binaries
@@ -124,6 +202,23 @@ spack:
       - libqt5svg5-dev
       - qt5dxcb-plugin
       - wget
+      - diffutils
+      - libgomp1
+      - autopoint
+      - jq
+      - file
+      - curl
+      - iproute2
+      - tcl-dev
+      - unzip
+      - bzip2
+      - gettext
+      - libtree
+      - pkg-config
+      - libcurl4-openssl-dev
+      - perl
+      - autoconf
+      - libtool
 
       final:
       - bc
@@ -151,16 +246,23 @@ spack:
       - vim
       - nano
       - less
+      - jq
+      - tcl-dev
+      - bzip2
+      - gettext
+      - libtree
+      - pkg-config
+      - libcurl4-openssl-dev
+      - perl
+      - autoconf
+      - libtool
 
     # Extra instructions
     extra_instructions:
       pre_build: |
-        # Copy the spack-stack extension repo into the spack code
-        COPY spack-ext-SPACK_STACK_HASH/repos/spack-stack $SPACK_ROOT/var/spack/repos/spack-stack
-        # Register spack-stack extension repo
-        RUN spack repo add $SPACK_ROOT/var/spack/repos/spack-stack --scope defaults && \
-        # Needed by py-llvmlite
-        update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100
+        RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100 \
+            && spack clean --all \
+            && spack gc -y
       pre_final: |
         # Set environment variables for installing tzdata
         ENV DEBIAN_FRONTEND=noninteractive
@@ -181,7 +283,6 @@ spack:
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 && \
         update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100 && \
-        ln -s /usr/bin/cpp-13 /usr/bin/cpp
         # Make a non-root user:nonroot / group:nonroot for running MPI
         RUN useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891 && \
         echo "ulimit -s unlimited" >> /home/nonroot/.bashrc && \
