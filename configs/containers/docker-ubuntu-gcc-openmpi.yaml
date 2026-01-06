@@ -13,9 +13,11 @@ spack:
     all:
       prefer:
       - '%gcc'
-      target: [core2]
+      target: [x86_64]
       providers:
         mpi: [openmpi@5.0.8]
+
+    # Compilers and meta packages.
     gcc:
       buildable: false
       externals:
@@ -33,6 +35,8 @@ spack:
         prefix: /usr
     mpi:
       require: [openmpi@5.0.8]
+
+    # System packages.
     diffutils:
       buildable: false
       externals:
@@ -69,90 +73,10 @@ spack:
       externals:
       - spec: wget@1.21.4
         prefix: /usr
-    grep:
-      buildable: false
-      externals:
-      - spec: grep@3.11
-        prefix: /usr
-    coreutils:
-      buildable: false
-      externals:
-      - spec: coreutils@9.4
-        prefix: /usr
     perl:
       buildable: false
       externals:
       - spec: perl@5.38.2
-        prefix: /usr
-    #m4:
-    #  buildable: false
-    #   externals:
-    #  - spec: m4@1.4.19
-    #     prefix: /usr
-    findutils:
-      buildable: false
-      externals:
-      - spec: findutils@4.9.0
-        prefix: /usr
-    sed:
-      buildable: false
-      externals:
-      - spec: sed@4.9
-        prefix: /usr
-    gmake:
-      buildable: false
-      externals:
-      - spec: gmake@4.3
-        prefix: /usr
-    automake:
-      buildable: false
-      externals:
-      - spec: automake@1.16.5
-        prefix: /usr
-    binutils:
-      buildable: false
-      externals:
-      - spec: binutils@2.42+gold~headers
-        prefix: /usr
-    autoconf:
-      buildable: false
-      externals:
-      - spec: autoconf@2.71
-        prefix: /usr
-    gawk:
-      buildable: false
-      externals:
-      - spec: gawk@5.2.1
-        prefix: /usr
-    gettext:
-      buildable: false
-      externals:
-      - spec: gettext@0.21
-        prefix: /usr
-    groff:
-      buildable: false
-      externals:
-      - spec: groff@1.23.0
-        prefix: /usr
-    libtool:
-      buildable: false
-      externals:
-      - spec: libtool@2.4.7
-        prefix: /usr
-    pkgconf:
-      buildable: false
-      externals:
-      - spec: pkgconf@1.8.1
-        prefix: /usr
-    tar:
-      buildable: false
-      externals:
-      - spec: tar@1.35
-        prefix: /usr
-    jq:
-      buildable: false
-      externals:
-      - spec: jq@1.7.1
         prefix: /usr
 
   specs: []
@@ -162,18 +86,6 @@ spack:
     # Select the format of the recipe e.g. docker,
     # singularity or anything else that is currently supported
     format: docker
-    # How to use:
-    #$ spack containerize > Dockerfile
-    #$ sudo docker build -t myimage .
-    #$ sudo docker run -it myimage
-
-    #format: singularity
-    # How to use:
-    #$ spack containerize > singularity.def
-    #$ sudo singularity build singularity.sif singularity.def
-
-    # Sets the base images for the stages where Spack builds the
-    # software or where the software gets installed after being built..
     images:
       os: ubuntu:24.04
       spack:
@@ -202,23 +114,6 @@ spack:
       - libqt5svg5-dev
       - qt5dxcb-plugin
       - wget
-      - diffutils
-      - libgomp1
-      - autopoint
-      - jq
-      - file
-      - curl
-      - iproute2
-      - tcl-dev
-      - unzip
-      - bzip2
-      - gettext
-      - libtree
-      - pkg-config
-      - libcurl4-openssl-dev
-      - perl
-      - autoconf
-      - libtool
 
       final:
       - bc
@@ -246,16 +141,7 @@ spack:
       - vim
       - nano
       - less
-      - jq
-      - tcl-dev
-      - bzip2
-      - gettext
-      - libtree
-      - pkg-config
-      - libcurl4-openssl-dev
-      - perl
-      - autoconf
-      - libtool
+
 
     # Extra instructions
     extra_instructions:
@@ -282,7 +168,7 @@ spack:
         RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100 && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 && \
-        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100 && \
+        update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100
         # Make a non-root user:nonroot / group:nonroot for running MPI
         RUN useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891 && \
         echo "ulimit -s unlimited" >> /home/nonroot/.bashrc && \
@@ -295,19 +181,23 @@ spack:
         echo "rmaps_default_mapping_policy=:oversubscribe" >> /home/nonroot/.pmix/mca-params.conf && \
         chown -R nonroot:nonroot /home/nonroot/.gitconfig /home/nonroot/.pmix
         # Replicate settings for root user
-        RUN echo "ulimit -s unlimited" >> /root/.bashrc && \
-        echo "ulimit -v unlimited" >> /root/.bashrc && \
-        echo "export CC=gcc" >> /root/.bashrc && \
-        echo "export CXX=g++" >> /root/.bashrc && \
-        echo "export FC=gfortran" >> /root/.bashrc && \
+        RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh && \
+        echo "ulimit -v unlimited" >> /etc/spack_container_rc.sh && \
+        echo "export CC=gcc" >> /etc/spack_container_rc.sh && \
+        echo "export CXX=g++" >> /etc/spack_container_rc.sh && \
+        echo "export FC=gfortran" >> /etc/spack_container_rc.sh && \
+        # Also set necessary environment variables for openmpi and jedi-cmake.
+        echo "export OMPI_ALLOW_RUN_AS_ROOT=1" >> /etc/spack_container_rc.sh && \
+        echo "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1" >> /etc/spack_container_rc.sh && \
+        echo "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> /etc/spack_container_rc.sh && \
+        echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-*/jedi-cmake-*)" >> /etc/spack_container_rc.sh && \
+        # Ensure that the container rc is run by login shells.
+        echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc && \
         printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig && \
         mkdir /root/.pmix && \
         echo "rmaps_default_mapping_policy=:oversubscribe" >> /root/.pmix/mca-params.conf
-        # Also set necessary environment variables for openmpi and jedi-cmake.
-        RUN echo "export OMPI_ALLOW_RUN_AS_ROOT=1" >> /root/.bashrc && \
-        echo "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1" >> /root/.bashrc && \
-        echo "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> /root/.bashrc && \
-        echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-ubuntu*/gcc-*/jedi-cmake-*)" >> /root/.bashrc
+        # Ensure that the container rc is run by non-login shells.
+        ENV BASH_ENV=/etc/spack_container_rc.sh
 
     # Labels for the image
     labels:
