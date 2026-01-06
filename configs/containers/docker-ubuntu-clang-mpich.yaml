@@ -265,7 +265,7 @@ spack:
         echo "export CC=clang" >> /root/.bashrc && \
         echo "export CXX=clang++" >> /root/.bashrc && \
         echo "export FC=gfortran" >> /root/.bashrc && \
-        echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-ubuntu*/clang-*/jedi-cmake-*)" >> /root/.bashrc && \
+        echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-*/jedi-cmake-*)" >> /root/.bashrc && \
         printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig
 
     # Labels for the image

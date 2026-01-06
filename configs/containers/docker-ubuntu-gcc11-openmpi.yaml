@@ -27,8 +27,7 @@ spack:
     all:
       prefer:
       - '%gcc'
-      target: [core2]
-      #target: [x86_64]
+      target: [x86_64]
       providers:
         mpi: [openmpi@5.0.8]
 
@@ -104,8 +103,8 @@ spack:
     images:
       os: ubuntu:24.04
       spack:
-        url: https://github.com/jcsda/spack-stack
-        ref: origin/release/2.0
+        url: https://github.com/jcsda/spack
+        ref: spack-stack-dev
         resolve_sha: true
 
     # Whether or not to strip binaries
