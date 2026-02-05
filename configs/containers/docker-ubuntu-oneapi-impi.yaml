@@ -155,9 +155,6 @@ spack:
       - spec: qt@5.15.3
         prefix: /usr
       version: [5.15.3]
-    sp:
-      require:
-      - +pic
 
   specs: []
 
@@ -274,7 +271,7 @@ spack:
         ENV TZ=Etc/UTC
         ENV CC=icx
         ENV CXX=icpx
-        ENV FC=ifort
+        ENV FC=ifx
       build: |
         # Put output of spack find into a file
         RUN cd /opt/spack-environment && \
@@ -310,7 +307,7 @@ spack:
         echo "ulimit -v unlimited" >> /etc/spack_container_rc.sh  && \
         echo "export CC=icx" >> /etc/spack_container_rc.sh  && \
         echo "export CXX=icpx" >> /etc/spack_container_rc.sh  && \
-        echo "export FC=ifort" >> /etc/spack_container_rc.sh  && \
+        echo "export FC=ifx" >> /etc/spack_container_rc.sh  && \
         echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-*/jedi-cmake-*)" >> /etc/spack_container_rc.sh  && \
         echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc && \
         printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig && \
