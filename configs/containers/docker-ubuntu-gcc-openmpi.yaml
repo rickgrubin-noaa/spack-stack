@@ -166,6 +166,7 @@ spack:
         COPY --from=builder /root/spack_find.out /root/spack_find.out
         # Set defaults for compilers and build utilities.
         RUN update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100 && \
+        update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-13 100 && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 && \
         update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100
