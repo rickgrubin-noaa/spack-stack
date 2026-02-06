@@ -160,8 +160,7 @@ spack:
     extra_instructions:
       pre_build: |
         # Register spack-stack extension repo
-        RUN spack repo add $SPACK_ROOT/var/spack/repos/spack-stack --scope defaults && \
-        update-alternatives --remove-all cpp && \
+        RUN update-alternatives --remove-all cpp && \
         update-alternatives --install /usr/bin/cpp cpp /usr/bin/cpp-11 100 && \
         update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
         update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
@@ -192,27 +191,33 @@ spack:
         update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100 && \
         # Make a non-root user:nonroot / group:nonroot for running MPI
         useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891 && \
-        # Set startup environment variables not set by spack.
-        echo "ulimit -s unlimited" >> /etc/spack_container_rc.sh && \
+        echo "ulimit -s unlimited" >> /home/nonroot/.bashrc && \
+        echo "ulimit -v unlimited" >> /home/nonroot/.bashrc && \
+        echo "export CC=gcc" >> /home/nonroot/.bashrc && \
+        echo "export CXX=g++" >> /home/nonroot/.bashrc && \
+        echo "export FC=gfortran" >> /home/nonroot/.bashrc && \
+        printf "[credential]\n    helper = cache --timeout=7200\n" >> /home/nonroot/.gitconfig && \
+        mkdir /home/nonroot/.pmix && \
+        echo "rmaps_default_mapping_policy=:oversubscribe" >> /home/nonroot/.pmix/mca-params.conf && \
+        chown -R nonroot:nonroot /home/nonroot/.gitconfig /home/nonroot/.pmix
+        # Replicate settings for root user
+        RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh && \
         echo "ulimit -v unlimited" >> /etc/spack_container_rc.sh && \
         echo "export CC=gcc" >> /etc/spack_container_rc.sh && \
         echo "export CXX=g++" >> /etc/spack_container_rc.sh && \
         echo "export FC=gfortran" >> /etc/spack_container_rc.sh && \
-        # Set necessary environment variables and config for openmpi.
+        # Also set necessary environment variables for openmpi and jedi-cmake.
         echo "export OMPI_ALLOW_RUN_AS_ROOT=1" >> /etc/spack_container_rc.sh && \
         echo "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1" >> /etc/spack_container_rc.sh && \
         echo "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> /etc/spack_container_rc.sh && \
         echo "export jedi_cmake_ROOT=$(ls -d /opt/software/linux-*/jedi-cmake-*)" >> /etc/spack_container_rc.sh && \
+        # Ensure that the container rc is run by login shells.
         echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc && \
-        # More openmpi config.
-        mkdir -p /root/.pmix && \
-        echo "rmaps_default_mapping_policy=:oversubscribe" >> /root/.pmix/mca-params.conf && \
-        mkdir -p /home/nonroot/.pmix && \
-        echo "rmaps_default_mapping_policy=:oversubscribe" >> /home/nonroot/.pmix/mca-params.conf && \
-        chown -R nonroot:nonroot /home/nonroot/.gitconfig /home/nonroot/.pmix && \
-        # Git config settings.
-        printf "[credential]\n    helper = cache --timeout=7200\n" >> /home/nonroot/.gitconfig && \
-        printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig
+        printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig && \
+        mkdir /root/.pmix && \
+        echo "rmaps_default_mapping_policy=:oversubscribe" >> /root/.pmix/mca-params.conf
+        # Ensure that the container rc is run by non-login shells.
+        ENV BASH_ENV=/etc/spack_container_rc.sh
 
         # Ensure that the container rc is run by non-login shells.
         ENV BASH_ENV=/etc/spack_container_rc.sh
