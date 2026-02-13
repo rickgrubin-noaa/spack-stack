@@ -55,22 +55,11 @@ packages:
       - tbb/2022.3
   mpich:
     buildable: false
-  mkl:
-    require: [intel-oneapi-mkl@2025.3]
   openmpi:
     buildable: false
-  icu4c:
+  mkl:
     require:
-    - '%gcc'
-  libmd:
-    require:
-    - '%gcc'
-  libbsd:
-    require:
-    - '%gcc'
-  bison:
-    require:
-    - '%gcc'
+    - intel-oneapi-mkl
   py-numpy:
     require:
     - '^intel-oneapi-mkl'
