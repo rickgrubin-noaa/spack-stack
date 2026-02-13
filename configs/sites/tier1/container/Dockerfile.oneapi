@@ -64,23 +64,21 @@ RUN set -euo pipefail; \
     update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-13 100 && \
     update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-14 100 && \
     # Install the intel
-    if [ "${COMPILER:-}" = "intel" ]; then \
-        apt update && \
-        apt install -y apt-utils gpg && \
-        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-          | gpg --dearmor \
-          | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
-          | tee /etc/apt/sources.list.d/oneAPI.list && \
-        apt update && \
-        apt install -y \
-            intel-oneapi-compiler-dpcpp-cpp-2025.3 \
-            intel-oneapi-compiler-fortran-2025.3 \
-            intel-oneapi-mpi-devel-2021.17 \
-            intel-oneapi-tbb-devel-2022.3 \
-            intel-oneapi-mkl-devel-2025.3 && \
-        echo "source /etc/profile.d/modules.sh && module use /opt/intel/oneapi/modulefiles" > /etc/profile.d/z01_oneapi_modules.sh; \
-    fi && \
+    apt install -y apt-utils gpg && \
+    wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+        | gpg --dearmor \
+        | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+        | tee /etc/apt/sources.list.d/oneAPI.list && \
+    apt update && \
+    apt install -y \
+        intel-oneapi-compiler-dpcpp-cpp-2025.3 \
+        intel-oneapi-compiler-fortran-2025.3 \
+        intel-oneapi-mpi-devel-2021.17 \
+        intel-oneapi-tbb-devel-2022.3 \
+        intel-oneapi-mkl-devel-2025.3 && \
+    /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/opt/intel/oneapi/modulefiles && \
+    echo "source /etc/profile.d/modules.sh && module use /opt/intel/oneapi/modulefiles" > /etc/profile.d/z01_oneapi_modules.sh && \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -134,6 +132,9 @@ RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh \
     && echo "export FC=ifx" >> /etc/spack_container_rc.sh \
     && echo "# TCL module path for the spack-stack environment." >> /etc/spack_container_rc.sh \
     && echo "export MODULEPATH=/opt/spack-software/modules/Core" >> /etc/spack_container_rc.sh \
+    && echo "source /etc/profile.d/modules.sh" \
+    && echo "module use /opt/intel/oneapi/modulefiles" \
+    && echo "module use /opt/spack-software/modules/Core" \
     && echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc \
     && printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig \
     && mkdir /root/.pmix \
