@@ -100,7 +100,7 @@ RUN mkdir -p /tmp/spack-stack && \
     spack clean --all
 
 ## ---------- Create runtime container ----------
-FROM spack_base AS runtime
+FROM ubuntu_base AS runtime
 
 COPY --from=builder /opt/spack-software/ /opt/spack-software/
 
