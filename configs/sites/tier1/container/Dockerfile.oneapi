@@ -132,9 +132,6 @@ RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh \
     && echo "export CC=icx" >> /etc/spack_container_rc.sh \
     && echo "export CXX=icpx" >> /etc/spack_container_rc.sh \
     && echo "export FC=ifx" >> /etc/spack_container_rc.sh \
-    && echo "# OpenMPI settings for running as root and oversubscription." >> /etc/spack_container_rc.sh \
-    && echo "export OMPI_ALLOW_RUN_AS_ROOT=1" >> /etc/spack_container_rc.sh \
-    && echo "export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1" >> /etc/spack_container_rc.sh \
     && echo "# TCL module path for the spack-stack environment." >> /etc/spack_container_rc.sh \
     && echo "export MODULEPATH=/opt/spack-software/modules/Core" >> /etc/spack_container_rc.sh \
     && echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc \
@@ -151,8 +148,5 @@ RUN useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891
 
 # Ensure the container rc is run by non-login shells too.
 ENV BASH_ENV=/etc/spack_container_rc.sh
-
-LABEL "app"="spack-stack" \
-      "mpi"="openmpi"
 
 CMD ["/bin/bash"]

@@ -3,7 +3,7 @@ packages:
     prefer:
     - '%oneapi'
     providers:
-      mpi: [intel-oneapi-mpi@2021.13]
+      mpi: [intel-oneapi-mpi@2021.17]
   mpi:
     require: [intel-oneapi-mpi@2021.17]
   # Compilers and meta packages.
@@ -19,9 +19,9 @@ packages:
       - compiler/2025.3.0
       extra_attributes:
         compilers:
-          fortran: /opt/intel/oneapi/compiler/2025.3/bin/ifx
           c: /opt/intel/oneapi/compiler/2025.3/bin/icx
           cxx: /opt/intel/oneapi/compiler/2025.3/bin/icpx
+          fortran: /opt/intel/oneapi/compiler/2025.3/bin/ifx
   gcc:
     externals:
     - spec: gcc@13.3.0 languages:='c,c++,fortran'

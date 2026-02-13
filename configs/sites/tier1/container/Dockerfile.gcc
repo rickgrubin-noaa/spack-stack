@@ -1,4 +1,4 @@
-# Spack-Stack Container Build for tier1/container Intel oneapi site
+# Spack-Stack Container Build for tier1/container GCC site
 # See the README.md for building instructions.
 
 ## ---------- build base container used by builder and runtime ----------
@@ -135,8 +135,5 @@ RUN useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891
 
 # Ensure the container rc is run by non-login shells too.
 ENV BASH_ENV=/etc/spack_container_rc.sh
-
-LABEL "app"="spack-stack" \
-      "mpi"="openmpi"
 
 CMD ["/bin/bash"]
