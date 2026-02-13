@@ -91,8 +91,6 @@ RUN mkdir -p /tmp/spack-stack && \
     spack env activate . && \
     spack concretize 2>&1 | tee log.concretize && \
     spack install --fail-fast -j ${BUILD_JOBS} 2>&1 | tee log.install && \
-    && cd ${SPACK_STACK_DIR}/envs/container \
-    && spack env activate . \
     spack module tcl refresh -y && \
     spack stack setup-meta-modules && \
     # Save output of spack find.
