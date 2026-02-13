@@ -132,9 +132,9 @@ RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh \
     && echo "export FC=ifx" >> /etc/spack_container_rc.sh \
     && echo "# TCL module path for the spack-stack environment." >> /etc/spack_container_rc.sh \
     && echo "export MODULEPATH=/opt/spack-software/modules/Core" >> /etc/spack_container_rc.sh \
-    && echo "source /etc/profile.d/modules.sh" \
-    && echo "module use /opt/intel/oneapi/modulefiles" \
-    && echo "module use /opt/spack-software/modules/Core" \
+    && echo "source /etc/profile.d/modules.sh" >> /etc/spack_container_rc.sh \
+    && echo "module use /opt/intel/oneapi/modulefiles" >> /etc/spack_container_rc.sh \
+    && echo "module use /opt/spack-software/modules/Core" >> /etc/spack_container_rc.sh \
     && echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc \
     && printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig \
     && mkdir /root/.pmix \
