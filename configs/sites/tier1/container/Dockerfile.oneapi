@@ -135,7 +135,7 @@ RUN echo "ulimit -s unlimited" > /etc/spack_container_rc.sh \
     && echo "module use /opt/spack-software/modules/Core" >> /etc/spack_container_rc.sh \
     && echo "source /etc/spack_container_rc.sh" >> /etc/bash.bashrc \
     && printf "[credential]\n    helper = cache --timeout=7200\n" >> /root/.gitconfig \
-    && mkdir /root/.pmix \
+    && mkdir /root/.pmix
 
 # Nonroot user for MPI
 RUN useradd -U -k /etc/skel -s /bin/bash -d /home/nonroot -m nonroot --uid 43891 \
