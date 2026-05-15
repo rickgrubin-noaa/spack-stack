@@ -38,10 +38,10 @@ packages:
     externals:
     - spec: bzip2@1.0.8
       prefix: /usr
-  cmake:
-    externals:
-    - spec: cmake@4.1.1
-      prefix: /home1/apps/cmake/4.1.1
+  #cmake:
+  #  externals:
+  #  - spec: cmake@4.1.1
+  #    prefix: /home1/apps/cmake/4.1.1
     #- spec: cmake@3.26.5
     #  prefix: /usr
   coreutils:
