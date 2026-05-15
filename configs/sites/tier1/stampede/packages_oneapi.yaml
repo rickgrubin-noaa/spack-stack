@@ -1,0 +1,44 @@
+packages:
+  all:
+    compiler: [oneapi@2024.2.1, gcc@11.5.0]
+  providers:
+    mpi:: [intel-oneapi-mpi@2021.13]
+    blas: [intel-oneapi-mkl]
+    fftw-api: [intel-oneapi-mkl]
+    lapack: [intel-oneapi-mkl]
+  mpi:
+    buildable: False
+    require:
+    - intel-oneapi-mpi@2021.13
+  intel-oneapi-mpi:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-mpi@2021.13%oneapi@2024.2.1
+      prefix: /work2/11546/rgrubin/stampede3/oneapi-2024.2.1
+      modules:
+      - mpi/2021.13
+  intel-oneapi-mkl:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-mkl@2024.2%oneapi@2024.2.1
+      prefix: /work2/11546/rgrubin/stampede3/oneapi-2024.2.1
+      modules:
+      - mkl/2024.2
+  intel-oneapi-tbb:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-tbb@2021.13%oneapi@2024.2.1
+      prefix: /work2/11546/rgrubin/stampede3/oneapi-2024.2.1
+      modules:
+      - tbb/2021.13
+  intel-oneapi-runtime:
+    externals:
+    - spec: intel-oneapi-runtime@2024.2.1%oneapi@2024.2.1
+      prefix: /work2/11546/rgrubin/stampede3/oneapi-2024.2.1
+      modules:
+      - compiler-rt/2024.2.1
+  gcc-runtime:
+    buildable: False
+    externals:
+    - spec: gcc@11.5.0%gcc@11.5.0
+      prefix: /usr

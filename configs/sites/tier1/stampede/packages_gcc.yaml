@@ -1,0 +1,35 @@
+packages:
+  all:
+    require:
+    - any_of: ['%gcc@=13.2.0']
+      when: '%gcc'
+  mpi:
+    buildable: False
+    require:
+    - openmpi@5.0.8
+
+  gcc:
+    buildable: False
+    externals:
+    - spec: gcc@13.2.0 languages:='c,c++,fortran'
+      prefix: /opt/apps/gcc/13.2.0
+      modules:
+      - gcc/13.2.0
+      extra_attributes:
+        compilers:
+          c: /opt/apps/gcc/13.2.0/bin/gcc
+          cxx: /opt/apps/gcc/13.2.0/bin/g++
+          fortran: /opt/apps/gcc/13.2.0/bin/gfortran    
+        environment:
+          set:
+            OMPI_MCA_sec: ^munge
+            PMIX_MCA_psec: native
+  openmpi:
+    buildable: False
+    externals:
+    #- spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace
+    #- spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace schedulers=slurm
+    - spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace romio_filesystem=lustre schedulers=slurm
+      prefix: /opt/apps/gcc13/openmpi/5.0.8
+      modules:
+      - openmpi/5.0.8
