@@ -1,0 +1,61 @@
+packages:
+  all:
+    require:
+    - any_of: ['%intel-oneapi-compilers@=2025.1.1']
+      when: '%intel-oneapi-compilers'
+    - any_of: ['%gcc@=13.2.0']
+      when: '%gcc'
+  mpi:
+    buildable: False
+    require:
+    - intel-oneapi-mpi@2021.15
+  intel-oneapi-compilers:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-compilers@2025.1.1
+      prefix: /scratch/projects/compilers/intel25.1/
+      modules:
+      - intel/25.1
+      extra_attributes:
+        compilers:
+          c: /scratch/projects/compilers/intel25.1/compiler/2025.1/bin/icx
+          cxx: /scratch/projects/compilers/intel25.1/compiler/2025.1/bin/icpx
+          fortran: /scratch/projects/compilers/intel25.1/compiler/2025.1/bin/ifx
+        environment:
+          prepend_path:
+            LD_LIBRARY_PATH: '/usr/lib:/usr/lib64'
+  intel-oneapi-mpi:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-mpi@2021.15
+      prefix: /scratch/projects/compilers/intel25.1
+      modules:
+      - impi/21.15
+  intel-oneapi-mkl:
+    buildable: False
+    externals:
+    - spec: intel-oneapi-mkl@2025.1
+      prefix: /scratch/projects/compilers/intel25.1
+      #modules:
+      #- gcc/15.1.0
+      #- mkl/25.1
+  #intel-oneapi-tbb:
+  #  buildable: False
+  #  externals:
+  #  - spec: intel-oneapi-tbb@2021.12
+  #    prefix: /apps/spack-2024-12/linux-rocky9-x86_64/gcc-11.4.1/intel-tbb-2021.12.0-grcsmccjpm3trn6rgtyq76kdxks6ygzm
+  gcc:
+    buildable: False
+    externals:
+    - spec: gcc@13.2.0 languages:='c,c++'
+      prefix: /opt/apps/gcc/13.2.0
+      modules:
+      - gcc/13.2.0
+      extra_attributes:
+        compilers:
+          c: /opt/apps/gcc/13.2.0/bin/gcc
+          cxx: /opt/apps/gcc/13.2.0/g++
+          fortran: /opt/apps/gcc/13.2.0/gfortran
+        environment:
+          prepend:
+            LD_LIBRARY_PATH: '/opt/apps/gcc/13.2.0/lib:/opt/apps/gcc/13.2.0/lib64'

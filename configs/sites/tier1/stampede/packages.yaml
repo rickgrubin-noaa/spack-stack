@@ -1,0 +1,208 @@
+packages:
+  all:
+    # To support hecflow01
+    # target: [AMD EPYC]
+     providers:
+      zlib-api:: [zlib]
+  zlib:
+    require::
+    - '@1.2.13'
+
+# All other packages listed alphabetically
+  autoconf:
+    externals:
+    #- spec: autoconf@2.72
+    #  prefix: /opt/apps/autotools/1.4
+    - spec: autoconf@2.69
+      prefix: /usr
+  automake:
+    externals:
+    #- spec: automake@1.16.5
+    #  prefix: /opt/apps/autotools/1.4
+    - spec: automake@1.16.2
+      prefix: /usr
+  bash:
+    externals:
+    - spec: bash@5.1.8
+      prefix: /usr
+  # version too old; require at least 2.38
+  #binutils:
+  #  externals:
+  #  - spec: binutils@2.35.2
+  #    prefix: /usr
+  bison:
+    externals:
+    - spec: bison@3.7.4
+      prefix: /usr
+  bzip2:
+    externals:
+    - spec: bzip2@1.0.8
+      prefix: /usr
+  cmake:
+    externals:
+    - spec: cmake@4.1.1
+      prefix: /home1/apps/cmake/4.1.1
+    #- spec: cmake@3.26.5
+    #  prefix: /usr
+  coreutils:
+    externals:
+    - spec: coreutils@8.32
+      prefix: /usr
+  cpio:
+    externals:
+    - spec: cpio@2.13.90
+      prefix: /usr
+  curl:
+    externals:
+    - spec: curl@7.76.1+gssapi+ldap+nghttp2
+      prefix: /usr
+  diffutils:
+    externals:
+    - spec: diffutils@3.7
+      prefix: /usr
+  doxygen:
+    externals:
+    - spec: doxygen@1.9.1+graphviz~mscgen
+      prefix: /usr
+  file:
+    externals:
+    - spec: file@5.39
+      prefix: /usr
+  findutils:
+    externals:
+    - spec: findutils@4.8.0
+      prefix: /usr
+  flex:
+    externals:
+    - spec: flex@2.6.4+lex
+      prefix: /usr
+  gawk:
+    externals:
+    - spec: gawk@5.1.0
+      prefix: /usr
+  gettext:
+    externals:
+    - spec: gettext@0.21
+      prefix: /usr
+  git:
+    externals:
+    - spec: git@2.47.3+tcltk
+      prefix: /usr
+  git-lfs:
+    externals:
+    - spec: git-lfs@3.6.1
+      prefix: /usr
+  gmake:
+    externals:
+    - spec: gmake@4.3
+      prefix: /usr
+  grep:
+    externals:
+    - spec: grep@3.6
+      prefix: /usr
+  groff:
+    externals:
+    - spec: groff@1.22.4
+      prefix: /usr
+  hwloc:
+    externals:
+    - spec: hwloc@2.4.1
+      prefix: /usr
+  #libfabric:
+  #  externals:
+  #  - spec: libfabric@2.1.0 fabrics=efa,lnx,opx,psm2,psm3,shm,sockets,tcp,udp,usnic,verbs
+  #    prefix: /usr
+  #libfuse:
+  #  externals:
+  #  - spec: libfuse@2.9.9
+  #    prefix: /usr
+  libtool:
+    externals:
+    #- spec: libtool@2.4.7
+    #  prefix: /opt/apps/autotools/1.4
+    - spec: libtool@2.4.6
+      prefix: /usr
+  m4:
+    externals:
+    #- spec: m4@1.4.19
+    #  prefix: /opt/apps/autotools/1.4
+    - spec: m4@1.4.19
+      prefix: /usr
+  #meson:
+  #  externals:
+  #  # requires loading a local python module
+  #  - spec: meson@1.10.0
+  #    prefix: /opt/apps/python/3.12.11
+  #- spec: meson@0.63.3
+  #  prefix: /usr
+  mysql:
+    externals:
+    - spec: mysql@10.6.6
+      prefix: /usr
+  ncurses:
+    externals:
+    - spec: ncurses@6.2.20210508+termlib abi=6
+      prefix: /usr
+  ninja:
+    externals:
+    - spec: ninja@1.10.2
+      prefix: /usr
+  openjdk:
+    externals:
+    - spec: openjdk@17.0.18_8-LTS
+      prefix: /usr
+  openssh:
+    externals:
+    - spec: openssh@8.7p1
+      prefix: /usr
+  openssl:
+    externals:
+    - spec: openssl@3.5.1
+      prefix: /usr
+  perl:
+    externals:
+    - spec: perl@5.32.1~cpanm+opcode+open+shared+threads
+      prefix: /usr
+  #pkgconf:
+  #  externals:
+  #  - spec: pkgconf@1.7.3
+  #    prefix: /usr
+  pkg-config:
+    externals:
+    - spec: pkg-config@1.7.3
+      prefix: /usr
+  qt:
+    buildable: False
+    externals:
+    - spec: qt@5.14.1
+      prefix: /opt/apps/qt5/5.14.2
+      modules:
+      - qt/5.14.2
+  rsync:
+    externals:
+    - spec: rsync@3.2.5
+      prefix: /usr
+  sed:
+    externals:
+    - spec: sed@4.8
+      prefix: /usr
+  sqlite:
+    externals:
+    - spec: sqlite@3.34.1+fts~functions+rtree
+      prefix: /usr
+  wget:
+    externals:
+    - spec: wget@1.21.1
+      prefix: /usr
+  which:
+    externals:
+    - spec: which@2.21
+      prefix: /usr
+  xz:
+    externals:
+    - spec: xz@5.2.5
+      prefix: /usr
+  zip:
+    externals:
+    - spec: zip@3.0
+      prefix: /usr
