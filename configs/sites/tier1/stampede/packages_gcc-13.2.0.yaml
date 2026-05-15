@@ -20,12 +20,16 @@ packages:
           c: /opt/apps/gcc/13.2.0/bin/gcc
           cxx: /opt/apps/gcc/13.2.0/bin/g++
           fortran: /opt/apps/gcc/13.2.0/bin/gfortran    
+        environment:
+          set:
+            OMPI_MCA_sec: ^munge
+            PMIX_MCA_psec: native
   openmpi:
     buildable: False
     externals:
     #- spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace
-    - spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace schedulers=slurm
-    #- spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace romio_filesystem=lustre schedulers=slurm
+    #- spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace schedulers=slurm
+    - spec: openmpi@5.0.8 ~internal-hwloc +two_level_namespace romio_filesystem=lustre schedulers=slurm
       prefix: /opt/apps/gcc13/openmpi/5.0.8
       modules:
       - openmpi/5.0.8
