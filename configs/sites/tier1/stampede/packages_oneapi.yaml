@@ -37,8 +37,14 @@ packages:
       prefix: /work2/11546/rgrubin/stampede3/oneapi-2024.2.1
       modules:
       - compiler-rt/2024.2.1
-  gcc-runtime:
-    buildable: False
-    externals:
-    - spec: gcc@11.5.0%gcc@11.5.0
-      prefix: /usr
+  
+  # stampede doesn't like this setting for gcc-runtime
+  #gcc-runtime:
+  #  buildable: False
+  #  externals:
+  #  - spec: gcc@11.5.0
+  #    prefix: /usr
+
+  # set to '%oneapi' for stampede (not sure why)
+  libbsd:
+    require: '%oneapi'
