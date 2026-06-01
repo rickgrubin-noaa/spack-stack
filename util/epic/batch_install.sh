@@ -123,7 +123,7 @@ fi
 
 ##################################################################################################
 
-# Remove domain name suffices and digits to determine hostname
+# Remove domain name suffices and digits and dashes [MSU] to determine hostname
 SPACK_STACK_BATCH_HOST=$(echo ${HOSTNAME} | cut -d "." -f 1 | cut -d "-" -f 1)
 SPACK_STACK_BATCH_HOST=${SPACK_STACK_BATCH_HOST//[0-9]/}
 
@@ -223,7 +223,7 @@ function fix_permissions() {
       fi
       nice -n 19 lfs find ${dir} -type f -print0 | xargs --null chmod a+r
       ;;
-    ursa)
+    ufe)  # ursa
       nice -n 19 lfs find ${dir} -type d -print0 | xargs --null chmod a+rx
       # In case the find command returns no executables
       if [[ ${executables} -eq 1 ]]; then
@@ -258,7 +258,7 @@ function tasks_per_node() {
     orion)
       tpn=128
       ;;
-    ursa)
+    ufe)  # ursa
       tpn=128
       ;;
     *)
@@ -295,7 +295,7 @@ function run_interactive_job() {
     orion)
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
       ;;
-    ursa)
+    ufe)  # ursa
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=serial --account=${ACCOUNT} bash ${script}
       ;;
     *)
@@ -526,7 +526,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
             ;;
         esac
         ;;
-      ursa)
+      ufe)  # ursa
         umask 0022
         module purge
         case ${compiler} in
