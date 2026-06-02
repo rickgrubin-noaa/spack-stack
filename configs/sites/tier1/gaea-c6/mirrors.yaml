@@ -1,0 +1,3 @@
+mirrors:
+  local-source: /ncrc/proj/epic/spack-stack/c6/source-cache
+  local-binary: /ncrc/proj/epic/spack-stack/c6/binary-cache
