@@ -250,16 +250,16 @@ function tasks_per_node() {
       tpn=128
       ;;
     gaea)
-      tpn=128
+      tpn=8
       ;;
     hercules)
-      tpn=128
+      tpn=8
       ;;
     orion)
-      tpn=128
+      tpn=8
       ;;
     ufe)  # ursa
-      tpn=128
+      tpn=8
       ;;
     *)
       echo "ERROR, tasks_per_node command not configured for ${host}"
@@ -284,19 +284,24 @@ function run_interactive_job() {
   echo "Starting interactive job on ${host} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
   case ${host} in
     derecho)
-      qsub -l select=1:ncpus=4:mpiprocs=128 -l walltime=${walltime} -j oe -q main -A NRAL0032 bash ${script}
+      # account == NRAL0032
+      qsub -l select=1:ncpus=8:mpiprocs=1 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
       ;;
     gaea)
-      qsub -l select=1:ncpus=4:mpiprocs=128 -l walltime=${walltime}-A NRAL0032 bash ${SCRIPT}
+      # account == epic
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=eslogin_c6 --account=${ACCOUNT} bash ${script}
       ;;
     hercules)
+      # account == epic
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
       ;;
     orion)
+      # account == epic
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
       ;;
     ufe)  # ursa
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=serial --account=${ACCOUNT} bash ${script}
+      # account == epic
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
       ;;
     *)
       echo "ERROR, run_interactive_job command not configured for ${host}"
