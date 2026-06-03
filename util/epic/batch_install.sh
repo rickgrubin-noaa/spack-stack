@@ -146,6 +146,7 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_MODULE_CHOICE="lmod"
     SPACK_STACK_BOOTSTRAP_MIRROR="/ncrc/proj/epic/spack-stack/c6/bootstrap-mirror"
     SPACK_STACK_CARGO_MIRROR="/ncrc/proj/epic/spack-stack/c6/cargo-mirror"
+    SPACK_STACK_BATCH_HOST="gaea-c6"
     ;;
   hercules)
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1" "gcc@=12.2.0")
@@ -167,6 +168,7 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_MODULE_CHOICE="lmod"
     SPACK_STACK_BOOTSTRAP_MIRROR="/contrib/spack-stack/bootstrap-mirror"
     SPACK_STACK_CARGO_MIRROR="/contrib/spack-stack/cargo-mirror"
+    SPACK_STACK_BATCH_HOST="ursa"
     ;;
   *)
     echo "ERROR, host ${SPACK_STACK_BATCH_HOST} not configured"
@@ -193,15 +195,16 @@ function fix_permissions() {
       fi
       nice -n 19 lfs find ${dir} -type f -print0 | xargs --null chmod a+r
       ;;
-    gaea)
-      nice -n 19 lfs find ${dir} -type d -print0 | xargs --null chmod a+rx
+    gaea-c6)
+      # no lfs command on gaea-c6
+      nice -n 19 find ${dir} -type d -print0 | xargs --null chmod a+rx
       # In case the find command returns no executables
       if [[ ${executables} -eq 1 ]]; then
         sleep 30
         nice -n 19 find ${dir} -type f -executable -print0 | xargs --null chmod a+rx
         sleep 30
       fi
-      nice -n 19 lfs find ${dir} -type f -print0 | xargs --null chmod a+r
+      nice -n 19 find ${dir} -type f -print0 | xargs --null chmod a+r
       ;;
     hercules)
       nice -n 19 lfs find ${dir} -type d -print0 | xargs --null chmod a+rx
@@ -223,7 +226,7 @@ function fix_permissions() {
       fi
       nice -n 19 lfs find ${dir} -type f -print0 | xargs --null chmod a+r
       ;;
-    ufe)  # ursa
+    ursa)
       nice -n 19 lfs find ${dir} -type d -print0 | xargs --null chmod a+rx
       # In case the find command returns no executables
       if [[ ${executables} -eq 1 ]]; then
@@ -249,7 +252,7 @@ function tasks_per_node() {
     derecho)
       tpn=128
       ;;
-    gaea)
+    gaea-c6)
       tpn=8
       ;;
     hercules)
@@ -258,7 +261,7 @@ function tasks_per_node() {
     orion)
       tpn=40
       ;;
-    ufe)  # ursa
+    ursa)
       tpn=128
       ;;
     *)
@@ -287,7 +290,7 @@ function run_interactive_job() {
       # account == NRAL0032
       qsub -I -l select=1:ncpus=8:mpiprocs=4 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
       ;;
-    gaea)
+    gaea-c6)
       # account == epic
       export ACCOUNT=epic
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --account=${ACCOUNT} bash ${script}
@@ -297,16 +300,16 @@ function run_interactive_job() {
       export ACCOUNT=epic
       # waiting for access to qos=long so walltime can be 720
       walltime=360
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
     orion)
       # account == epic
       export ACCOUNT=epic
       # waiting for access to qos=long so walltime can be 720
       walltime=360
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
-    ufe)  # ursa
+    ursa)
       # account == epic
       export ACCOUNT=epic
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
@@ -321,7 +324,7 @@ function run_interactive_job() {
 ##################################################################################################
 
 echo
-echo "Welcome to NRL SPACK-STACK BATCH INSTALL"
+echo "Welcome to EPIC SPACK-STACK BATCH INSTALL"
 echo
 
 if [[ ! -e "setup.sh" || ! -e ".spackstack" ]]; then
@@ -507,7 +510,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
             ;;
         esac
         ;;
-      gaea)
+      gaea-c6)
         umask 0022
         module purge
         case ${compiler} in
@@ -539,7 +542,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
             ;;
         esac
         ;;
-      ufe)  # ursa
+      ursa)
         umask 0022
         module purge
         case ${compiler} in
