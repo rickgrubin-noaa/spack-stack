@@ -253,13 +253,13 @@ function tasks_per_node() {
       tpn=8
       ;;
     hercules)
-      tpn=8
+      tpn=80
       ;;
     orion)
-      tpn=8
+      tpn=40
       ;;
     ufe)  # ursa
-      tpn=8
+      tpn=128
       ;;
     *)
       echo "ERROR, tasks_per_node command not configured for ${host}"
@@ -285,23 +285,31 @@ function run_interactive_job() {
   case ${host} in
     derecho)
       # account == NRAL0032
-      qsub -l select=1:ncpus=8:mpiprocs=1 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
+      qsub -I -l select=1:ncpus=8:mpiprocs=4 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
       ;;
     gaea)
       # account == epic
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=eslogin_c6 --account=${ACCOUNT} bash ${script}
+      export ACCOUNT=epic
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --account=${ACCOUNT} bash ${script}
       ;;
     hercules)
       # account == epic
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
+      export ACCOUNT=epic
+      # waiting for access to qos=long so walltime can be 720
+      walltime=360
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
     orion)
       # account == epic
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
+      export ACCOUNT=epic
+      # waiting for access to qos=long so walltime can be 720
+      walltime=360
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
     ufe)  # ursa
       # account == epic
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --account=${ACCOUNT} bash ${script}
+      export ACCOUNT=epic
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
       ;;
     *)
       echo "ERROR, run_interactive_job command not configured for ${host}"
