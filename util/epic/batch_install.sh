@@ -288,6 +288,7 @@ function run_interactive_job() {
   case ${host} in
     derecho)
       # account == NRAL0032
+      export ACCOUNT=NRAL0032
       qsub -I -l select=1:ncpus=8:mpiprocs=4 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
       ;;
     gaea-c6)
@@ -307,7 +308,7 @@ function run_interactive_job() {
       export ACCOUNT=epic
       # waiting for access to qos=long so walltime can be 720
       walltime=360
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=orion --account=${ACCOUNT} bash ${script}
       ;;
     ursa)
       # account == epic
