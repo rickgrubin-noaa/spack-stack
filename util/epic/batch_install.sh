@@ -144,23 +144,23 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.2.1" "gcc@=13.3.1")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/ncrc/proj/epic/spack-stack/c6/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/ncrc/proj/epic/spack-stack/c6/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/gpfs/f6/epic/proj-shared/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/gpfs/f6/epic/proj-shared/cargo-mirror"
     SPACK_STACK_BATCH_HOST="gaea-c6"
     ;;
   hercules)
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1" "gcc@=12.2.0")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/apps/contrib/spack-stack/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/apps/contrib/spack-stack/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/work/noaa/epic/role-epic/spack-stack/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/work/noaa/epic/role-epic/spack-stack/cargo-mirror"
     ;;
   orion)
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/apps/contrib/spack-stack/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/apps/contrib/spack-stack/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/work/noaa/epic/role-epic/spack-stack/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/work/noaa/epic/role-epic/spack-stack/cargo-mirror"
     ;;
   ufe)    # ursa
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1" "oneapi@=2025.3.1-hpcx" "gcc@=12.4.0")
@@ -253,7 +253,7 @@ function tasks_per_node() {
       tpn=128
       ;;
     gaea-c6)
-      tpn=8
+      tpn=120
       ;;
     hercules)
       tpn=80
@@ -262,7 +262,7 @@ function tasks_per_node() {
       tpn=40
       ;;
     ursa)
-      tpn=128
+      tpn=64
       ;;
     *)
       echo "ERROR, tasks_per_node command not configured for ${host}"
@@ -279,40 +279,29 @@ function run_interactive_job() {
   script=$2
   reuse_build_cache=$3
   tpn=$(tasks_per_node ${host})
-  walltime="720"
-  if [[ ! -n "${ACCOUNT}" ]]; then
-    echo "ERROR, environment variable ACCOUNT not set"
-    exit 1
-  fi
+  walltime="720"  # 12hr
   echo "Starting interactive job on ${host} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
   case ${host} in
     derecho)
-      # account == NRAL0032
-      export ACCOUNT=NRAL0032
-      qsub -I -l select=1:ncpus=8:mpiprocs=4 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} bash ${script}
+      ACCOUNT="NRAL0032"
+      walltime="12:00:00"
+      module load ncarenv/25.10 &>/dev/null  # required for qcmd
+      qcmd -l select=1:ncpus=8:mpiprocs=8 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
       ;;
     gaea-c6)
-      # account == epic
-      export ACCOUNT=epic
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --account=${ACCOUNT} bash ${script}
+      ACCOUNT="epic"
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --clusters=c6 --account=${ACCOUNT} bash ${script}
       ;;
     hercules)
-      # account == epic
-      export ACCOUNT=epic
-      # waiting for access to qos=long so walltime can be 720
-      walltime=360
+      ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
     orion)
-      # account == epic
-      export ACCOUNT=epic
-      # waiting for access to qos=long so walltime can be 720
-      walltime=360
+      ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=orion --account=${ACCOUNT} bash ${script}
       ;;
     ursa)
-      # account == epic
-      export ACCOUNT=epic
+      ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
       ;;
     *)
@@ -439,14 +428,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     if [[ "${template}" == "cylc-dev" && ! "${compiler_name}" == "gcc" ]]; then
       echo "Skipping template ${template} with compiler ${compiler}"
       continue
-    # With clang, only neptune-dev-llvm
-    elif [[ "${compiler_name}" == "clang" && ! "${template}" == "neptune-dev-llvm" ]]; then
-      echo "Skipping template ${template} with compiler ${compiler}"
-      continue
-    # With other compilers, skip neptune-dev-llvm
-    elif [[ ! "${compiler_name}" == "clang" && "${template}" == "neptune-dev-llvm" ]]; then
-      echo "Skipping template ${template} with compiler ${compiler}"
-      continue
     # FMS compiler ICE: https://github.com/NOAA-GFDL/FMS/issues/1680
     elif [[ "${compiler_name}" == "oneapi" && "${compiler_version}" == "2025.1"* && "${template}" == "unified-dev" ]]; then
       echo "Skipping template ${template} with compiler ${compiler}"
@@ -459,12 +440,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     case ${template} in
       unified-dev)
         env_name_prefix="ue"
-        ;;
-      neptune-dev)
-        env_name_prefix="ne"
-        ;;
-      neptune-dev-llvm)
-        env_name_prefix="ne"
         ;;
       cylc-dev)
         env_name_prefix="ce"
@@ -536,8 +511,9 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
         umask 0022
         module purge
         case ${compiler} in
-          gcc@=12.2.0)
-            ;;
+          # not currently supported
+          #gcc@=12.2.0)
+          #  ;;
           oneapi@=2025.3.1)
             module use /apps/contrib/spack-stack/modulefiles
             ;;
@@ -600,7 +576,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
                              --template=${template} \
                              --dir=${environment_dirs} \
                              --treat-warnings-as-errors \
-                             2>&1 | tee log.create.${env_name}.001
+                             2>&1 | tee ${env_dir}/log.create.001
     fi
     spack env activate -p ${env_dir}
 
@@ -662,7 +638,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     spack bootstrap now 2>&1 | tee log.bootstrap.${env_name}.001
 
     # Concretize environment, and check that spack.lock is created
-    spack concretize --force --fresh 2>&1 | tee log.concretize.${env_name}.001
+    spack concretize --force --fresh 2>&1 | tee ${env_dir}/log.concretize.001
     if [[ ! -e ${env_dir}/spack.lock ]]; then
       echo "ERROR during concretization of environment ${env_name}, spack.lock not found"
       exit 1
@@ -730,26 +706,26 @@ $(declare -p test_packages)
 # If no tests are required, install everything
 if [[ \${#test_packages[@]} -eq 0 ]]; then
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.${env_name}.001
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee ${env_dir}/log.install.001
   set +o pipefail
 else
   for (( idx=0; idx<\${#test_packages[@]}; idx++ )); do
     test_package=\${test_packages[\${idx}]}
     # First, check if this package is in this environment
     set +e
-    grep -e "\${test_package}@" log.concretize.${env_name}.001 || continue
+    grep -e "\${test_package}@" ${env_dir}/log.concretize.001 || continue
     set -e
     idx_padded=\$(printf "%03d" "\$((idx+1))")
     set -o pipefail
     spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} --only=dependencies \${test_package} \\
-      2>&1 | tee log.install.${env_name}.\${idx_padded}.\${test_package}-dependencies
-    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee log.install.${env_name}.\${idx_padded}.\${test_package}
+      2>&1 | tee ${env_dir}/log.install.\${idx_padded}.\${test_package}-dependencies
+    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee i${env_dir}/log.install.\${idx_padded}.\${test_package}
     set +o pipefail
   done
   # idx now equals the length of the array; install the rest
   idx_padded=\$(printf "%03d" "\$((idx+1))")
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.${env_name}.\${idx_padded}
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee ${env_dir}/log.install.\${idx_padded}
   set +o pipefail
 fi
 EOF
@@ -768,8 +744,8 @@ EOF
 
     # In install mode, create environment modules
     if [[ "${update_build_cache}" == "false" ]]; then
-      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee log.modules.${env_name}.001
-      spack stack setup-meta-modules 2>&1 | tee log.setup-meta-modules.${env_name}.001
+      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee ${env_dir}/log.modules.001
+      spack stack setup-meta-modules 2>&1 | tee ${env_dir}/log.setup-meta-modules.001
     fi
 
     # When creating or updating buildcaches, fix permissions for mirrors.
