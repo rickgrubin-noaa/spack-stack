@@ -286,7 +286,8 @@ function run_interactive_job() {
       ACCOUNT="NRAL0032"
       walltime="12:00:00"
       module load ncarenv/25.10 &>/dev/null  # required for qcmd
-      qcmd -l select=1:ncpus=8:mpiprocs=8 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
+      #qcmd -l select=1:ncpus=8:mpiprocs=8 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
+      qcmd -l select=1:ncpus=${tpn}:mpiprocs=${tpn} -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
       ;;
     gaea-c6)
       ACCOUNT="epic"
