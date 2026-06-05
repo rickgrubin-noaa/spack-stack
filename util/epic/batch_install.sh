@@ -144,8 +144,8 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.2.1" "gcc@=13.3.1")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/gpfs/f6/epic/proj-shared/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/gpfs/f6/epic/proj-shared/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/gpfs/f6/epic/proj-shared/spack-stack/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/gpfs/f6/epic/proj-shared/spack-stack/cargo-mirror"
     SPACK_STACK_BATCH_HOST="gaea-c6"
     ;;
   hercules)
