@@ -307,7 +307,7 @@ function run_interactive_job() {
       ;;
     ursa)
       ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
       ;;
     *)
       echo "ERROR, run_interactive_job command not configured for ${host}"
@@ -755,9 +755,9 @@ EOF
 
     # remove me
     echo ; echo
-    echo -n "Copying log files to ${env_dir}"
+    echo -n "Copying log files to ${env_dir}..."
     mv log.* ${env_dir}
-    echo "done"
+    echo -n "done"
     echo; echo
 
     # When creating or updating buildcaches, fix permissions for mirrors.
