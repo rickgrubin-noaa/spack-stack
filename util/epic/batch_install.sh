@@ -295,11 +295,15 @@ function run_interactive_job() {
       ;;
     hercules)
       ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
+      walltime="360"
+      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
       ;;
     orion)
       ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=orion --account=${ACCOUNT} bash ${script}
+      walltime="360"
+      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=orion --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=orion --account=${ACCOUNT} bash ${script}
       ;;
     ursa)
       ACCOUNT="epic"
@@ -540,7 +544,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
 
     # Info prints
     ulimit -a
-    module li
+    module list
 
     source setup.sh
     if [[ "${first_pass}" == "true" ]]; then
@@ -577,7 +581,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
                              --template=${template} \
                              --dir=${environment_dirs} \
                              --treat-warnings-as-errors \
-                             2>&1 | tee ${env_dir}/log.create.001
+                             2>&1 | tee log.create.001
     fi
     spack env activate -p ${env_dir}
 
@@ -639,7 +643,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     spack bootstrap now 2>&1 | tee log.bootstrap.${env_name}.001
 
     # Concretize environment, and check that spack.lock is created
-    spack concretize --force --fresh 2>&1 | tee ${env_dir}/log.concretize.001
+    spack concretize --force --fresh 2>&1 | tee log.concretize.001
     if [[ ! -e ${env_dir}/spack.lock ]]; then
       echo "ERROR during concretization of environment ${env_name}, spack.lock not found"
       exit 1
@@ -707,26 +711,26 @@ $(declare -p test_packages)
 # If no tests are required, install everything
 if [[ \${#test_packages[@]} -eq 0 ]]; then
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee ${env_dir}/log.install.001
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.001
   set +o pipefail
 else
   for (( idx=0; idx<\${#test_packages[@]}; idx++ )); do
     test_package=\${test_packages[\${idx}]}
     # First, check if this package is in this environment
     set +e
-    grep -e "\${test_package}@" ${env_dir}/log.concretize.001 || continue
+    grep -e "\${test_package}@" log.concretize.001 || continue
     set -e
     idx_padded=\$(printf "%03d" "\$((idx+1))")
     set -o pipefail
     spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} --only=dependencies \${test_package} \\
-      2>&1 | tee ${env_dir}/log.install.\${idx_padded}.\${test_package}-dependencies
-    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee i${env_dir}/log.install.\${idx_padded}.\${test_package}
+      2>&1 | tee log.install.\${idx_padded}.\${test_package}-dependencies
+    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee log.install.\${idx_padded}.\${test_package}
     set +o pipefail
   done
   # idx now equals the length of the array; install the rest
   idx_padded=\$(printf "%03d" "\$((idx+1))")
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee ${env_dir}/log.install.\${idx_padded}
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.\${idx_padded}
   set +o pipefail
 fi
 EOF
@@ -745,9 +749,16 @@ EOF
 
     # In install mode, create environment modules
     if [[ "${update_build_cache}" == "false" ]]; then
-      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee ${env_dir}/log.modules.001
-      spack stack setup-meta-modules 2>&1 | tee ${env_dir}/log.setup-meta-modules.001
+      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee log.modules.001
+      spack stack setup-meta-modules 2>&1 | tee log.setup-meta-modules.001
     fi
+
+    # remove me
+    echo ; echo
+    echo -n "Copying log files to ${env_dir}"
+    mv log.* ${env_dir}
+    echo "done"
+    echo; echo
 
     # When creating or updating buildcaches, fix permissions for mirrors.
     # Mirrors do not contain executables, therefore skip looking for them.
