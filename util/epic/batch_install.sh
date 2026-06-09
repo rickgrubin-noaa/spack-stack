@@ -127,10 +127,11 @@ fi
 SPACK_STACK_BATCH_HOST=$(echo ${HOSTNAME} | cut -d "." -f 1 | cut -d "-" -f 1)
 SPACK_STACK_BATCH_HOST=${SPACK_STACK_BATCH_HOST//[0-9]/}
 
+# Not pertinent to EPIC hosts; save as an illustrative example for EPIC ParallelWorks hosts
 # Workaround for ParallelWorks login nodes
-if [[ "${SPACK_STACK_BATCH_HOST}" == *"awsneptunecluster"* ]]; then
-  SPACK_STACK_BATCH_HOST="navy-aws"
-fi
+#if [[ "${SPACK_STACK_BATCH_HOST}" == *"awsneptunecluster"* ]]; then
+#  SPACK_STACK_BATCH_HOST="navy-aws"
+#fi
 
 case ${SPACK_STACK_BATCH_HOST} in
   derecho)
@@ -146,6 +147,7 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_MODULE_CHOICE="lmod"
     SPACK_STACK_BOOTSTRAP_MIRROR="/gpfs/f6/epic/proj-shared/spack-stack/bootstrap-mirror"
     SPACK_STACK_CARGO_MIRROR="/gpfs/f6/epic/proj-shared/spack-stack/cargo-mirror"
+    # hostname needs to match configs/sites/tier1/<host>
     SPACK_STACK_BATCH_HOST="gaea-c6"
     ;;
   hercules)
@@ -168,6 +170,7 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_MODULE_CHOICE="lmod"
     SPACK_STACK_BOOTSTRAP_MIRROR="/contrib/spack-stack/bootstrap-mirror"
     SPACK_STACK_CARGO_MIRROR="/contrib/spack-stack/cargo-mirror"
+    # hostname needs to match configs/sites/tier1/<host>
     SPACK_STACK_BATCH_HOST="ursa"
     ;;
   *)
@@ -262,7 +265,7 @@ function tasks_per_node() {
       tpn=40
       ;;
     ursa)
-      tpn=64
+      tpn=128
       ;;
     *)
       echo "ERROR, tasks_per_node command not configured for ${host}"
@@ -272,12 +275,63 @@ function tasks_per_node() {
   echo "${tpn}"
 }
 
+
+##################################################################################################
+
+function host_parameters() {
+  local -n host_array=$1
+  local -n epic_host=$2
+
+    case ${epic_host} in
+      derecho)
+        host_array=("NRAL0032" "12:00:00" "128")
+        ;;
+      gaea-c6)
+        host_array=("epic" "720" "128")
+        ;;
+      hercules)
+        host_array=("epic" "720" "80")
+        ;;
+      orion)
+        host_array=("epic" "720" "40")
+        ;;
+      ursa)
+        host_array=("epic" "720" "128")
+        ;;
+      *)
+        echo "ERROR, host_parameters command not configured for ${host}"
+        exit 1
+        ;;
+  esac
+
+}
+
 ##################################################################################################
 
 function run_interactive_job() {
   host=$1
   script=$2
   reuse_build_cache=$3
+
+  params=()
+  host_parameters params host
+  length=${#params[@]}
+  #if [[ $length -lt 3 ]] ; then
+  if [[ ${#params[@]}-lt 3 ]] ; then
+    echo "Incorrect number of host-specific configuration parameters for ${host}"
+    exit 1
+  fi
+
+  ACCOUNT=${params[0]}
+  walltime=${params[1]}
+  tpn=${params[2]}
+
+  echo
+  echo "ACCOUNT: ${ACCOUNT}"
+  echo "walltime: ${walltime}"
+  echo "tpn: ${tpn}"
+  echo
+
   tpn=$(tasks_per_node ${host})
   walltime="720"  # 12hr
   echo "Starting interactive job on ${host} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
@@ -286,7 +340,6 @@ function run_interactive_job() {
       ACCOUNT="NRAL0032"
       walltime="12:00:00"
       module load ncarenv/25.10 &>/dev/null  # required for qcmd
-      #qcmd -l select=1:ncpus=8:mpiprocs=8 -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
       qcmd -l select=1:ncpus=${tpn}:mpiprocs=${tpn} -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
       ;;
     gaea-c6)
@@ -295,15 +348,11 @@ function run_interactive_job() {
       ;;
     hercules)
       ACCOUNT="epic"
-      walltime="360"
-      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=hercules --account=${ACCOUNT} bash ${script}
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=hercules --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
       ;;
     orion)
       ACCOUNT="epic"
-      walltime="360"
-      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=orion --account=${ACCOUNT} bash ${script}
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=orion --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
       ;;
     ursa)
       ACCOUNT="epic"
@@ -383,14 +432,6 @@ else
   exit 1
 fi
 
-# remove me
-echo ; echo
-echo "update_bootstrap_mirror: $update_bootstrap_mirror"
-echo "update_cargo_mirror: $update_cargo_mirror"
-echo "update_source_cache: $update_source_cache"
-echo "update_build_cache: $update_build_cache"
-echo ; echo
-
 ignore_env_exist=${SPACK_STACK_IGNORE_ENV_EXIST:-false}
 
 if [[ "${SPACK_STACK_SUBMIT_TO_SCHEDULER}" == "true" ]]; then
@@ -416,12 +457,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
 
   compiler_name=$(echo ${compiler} | cut -d "@" -f 1)
   compiler_version=$(echo ${compiler} | cut -d "=" -f 2)
-
-  # remove me
-  echo ; echo
-  echo "compiler_name: $compiler_name"
-  echo "compiler_version: $compiler_version"
-  echo ; echo
 
   for template in "${SPACK_STACK_BATCH_TEMPLATES[@]}"; do
 
@@ -469,13 +504,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     else
       env_exists="false"
     fi
-
-    # remove me
-    echo ; echo
-    echo "template: $template"
-    echo "env_name: $env_name"
-    echo "env_dir: $env_dir"
-    echo ; echo
 
     # Reset environment
     echo "Resetting environment ..."
@@ -585,8 +613,10 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     fi
     spack env activate -p ${env_dir}
 
+    # Not pertinent to EPIC hosts; save as an illustrative example for EPIC ParallelWorks hosts
+    # and potential Enterprise GitHub or GitLab
     # Workaround for ParallelWorks (no NRL Enterprise GitHub access yet)
-    sed -i 's/+adp/~adp/g' ${env_dir}/spack.yaml
+    #sed -i 's/+adp/~adp/g' ${env_dir}/spack.yaml
 
     echo "Registering bootstrap mirror ${bootstrap_mirror_path} ..."
     if [[ ! -d ${bootstrap_mirror_path} ]]; then
@@ -597,14 +627,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
         spack bootstrap add --trust local-sources ${bootstrap_mirror_path}/metadata/sources
     spack bootstrap list | grep local-binaries || \
         spack bootstrap add --trust local-binaries ${bootstrap_mirror_path}/metadata/binaries
-
-    # remove me
-    spack mirror list
-    echo
-    spack mirror list | grep local-source
-    echo
-    spack mirror list | grep local-binary
-    echo ; echo
 
     # Check that the site has mirrors configured for local source and build caches,
     # and extract the local path on disk. Need to strip leading "file://" from path
@@ -627,12 +649,6 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
       binary_mirror_path=${binary_mirror_path:7}
     fi
     echo "Spack binary mirror path: ${binary_mirror_path}"
-
-    # remove me
-    echo ; echo
-    echo "update_source_cache: $update_source_cache"
-    echo "update_build_cache: $update_build_cache"
-    echo ; echo 
 
     if [[ "${update_build_cache}" == "true" ]]; then
       spack config add config:install_tree:padded_length:200
@@ -753,12 +769,11 @@ EOF
       spack stack setup-meta-modules 2>&1 | tee log.setup-meta-modules.001
     fi
 
-    # remove me
-    echo ; echo
+    echo
     echo -n "Copying log files to ${env_dir}..."
     mv log.* ${env_dir}
     echo -n "done"
-    echo; echo
+    echo
 
     # When creating or updating buildcaches, fix permissions for mirrors.
     # Mirrors do not contain executables, therefore skip looking for them.
