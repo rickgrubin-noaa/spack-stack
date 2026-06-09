@@ -468,6 +468,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
       continue
     fi
     echo "Processing template ${template} with compiler ${compiler}"
+    echo
     #############################################################
 
     # Build environment name. Prefices are defined here
