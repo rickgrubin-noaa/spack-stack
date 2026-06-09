@@ -161,15 +161,15 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/work/noaa/epic/role-epic/spack-stack/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/work/noaa/epic/role-epic/spack-stack/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/apps/contrib/spack-stack/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/apps/contrib/spack-stack/cargo-mirror"
     ;;
   ufe)    # ursa
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.3.1" "oneapi@=2025.3.1-hpcx" "gcc@=12.4.0")
     SPACK_STACK_BATCH_TEMPLATES=("unified-dev")
     SPACK_STACK_MODULE_CHOICE="lmod"
-    SPACK_STACK_BOOTSTRAP_MIRROR="/contrib/spack-stack/bootstrap-mirror"
-    SPACK_STACK_CARGO_MIRROR="/contrib/spack-stack/cargo-mirror"
+    SPACK_STACK_BOOTSTRAP_MIRROR="/apps/contrib/spack-stack/bootstrap-mirror"
+    SPACK_STACK_CARGO_MIRROR="/apps/contrib/spack-stack/cargo-mirror"
     # hostname needs to match configs/sites/tier1/<host>
     SPACK_STACK_BATCH_HOST="ursa"
     ;;
@@ -317,7 +317,7 @@ function run_interactive_job() {
   host_parameters params host
   length=${#params[@]}
   if [[ $length -lt 3 ]] ; then
-  #if [[ ${#params[@]}-lt 3 ]] ; then
+  #if [[ ${#params[@]} -lt 3 ]] ; then
     echo "Incorrect number of host-specific configuration parameters for ${host}"
     exit 1
   fi
