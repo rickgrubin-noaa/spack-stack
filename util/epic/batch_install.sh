@@ -278,7 +278,7 @@ function tasks_per_node() {
 
 ##################################################################################################
 
-function host_parameters() {
+function epic_host_parameters() {
   local -n host_array=$1
   local -n epic_host=$2
 
@@ -313,11 +313,11 @@ function run_interactive_job() {
   script=$2
   reuse_build_cache=$3
 
+  # get interactive job parameters for host
   params=()
-  host_parameters params host
+  epic_host_parameters params host
   length=${#params[@]}
   if [[ $length -lt 3 ]] ; then
-  #if [[ ${#params[@]} -lt 3 ]] ; then
     echo "Incorrect number of host-specific configuration parameters for ${host}"
     exit 1
   fi
@@ -326,36 +326,30 @@ function run_interactive_job() {
   walltime=${params[1]}
   tpn=${params[2]}
 
-  echo
-  echo "ACCOUNT: ${ACCOUNT}"
-  echo "walltime: ${walltime}"
-  echo "tpn: ${tpn}"
-  echo
-
-  tpn=$(tasks_per_node ${host})
-  walltime="720"  # 12hr
+  #tpn=$(tasks_per_node ${host})
+  #walltime="720"  # 12hr
   echo "Starting interactive job on ${host} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
   case ${host} in
     derecho)
-      ACCOUNT="NRAL0032"
-      walltime="12:00:00"
+      #ACCOUNT="NRAL0032"
+      #walltime="12:00:00"
       module load ncarenv/25.10 &>/dev/null  # required for qcmd
       qcmd -l select=1:ncpus=${tpn}:mpiprocs=${tpn} -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
       ;;
     gaea-c6)
-      ACCOUNT="epic"
+      #ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --clusters=c6 --account=${ACCOUNT} bash ${script}
       ;;
     hercules)
-      ACCOUNT="epic"
+      #ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
       ;;
     orion)
-      ACCOUNT="epic"
+      #ACCOUNT="epic"
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
       ;;
     ursa)
-      ACCOUNT="epic"
+      #ACCOUNT="epic"
       salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
       ;;
     *)
