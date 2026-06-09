@@ -316,8 +316,8 @@ function run_interactive_job() {
   params=()
   host_parameters params host
   length=${#params[@]}
-  #if [[ $length -lt 3 ]] ; then
-  if [[ ${#params[@]}-lt 3 ]] ; then
+  if [[ $length -lt 3 ]] ; then
+  #if [[ ${#params[@]}-lt 3 ]] ; then
     echo "Incorrect number of host-specific configuration parameters for ${host}"
     exit 1
   fi
