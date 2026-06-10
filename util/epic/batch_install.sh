@@ -282,28 +282,28 @@ function epic_host_parameters() {
   local -n host_array=$1
   local -n epic_host=$2
 
-    case ${epic_host} in
-      derecho)
-        host_array=("NRAL0032" "12:00:00" "128")
-        ;;
-      gaea-c6)
-        host_array=("epic" "720" "128")
-        ;;
-      hercules)
-        host_array=("epic" "720" "80")
-        ;;
-      orion)
-        host_array=("epic" "720" "40")
-        ;;
-      ursa)
-        host_array=("epic" "720" "128")
-        ;;
-      *)
-        echo "ERROR, host_parameters command not configured for ${host}"
-        exit 1
-        ;;
+  # array values: ("account" "walltime" "tasks_per_node")
+  case ${epic_host} in
+    derecho)
+      host_array=("NRAL0032" "12:00:00" "128")
+      ;;
+    gaea-c6)
+      host_array=("epic" "720" "128")
+      ;;
+    hercules)
+      host_array=("epic" "720" "80")
+      ;;
+    orion)
+      host_array=("epic" "720" "40")
+      ;;
+    ursa)
+      host_array=("epic" "720" "128")
+      ;;
+    *)
+      echo "ERROR, host_parameters command not configured for ${host}"
+      exit 1
+      ;;
   esac
-
 }
 
 ##################################################################################################
@@ -316,41 +316,32 @@ function run_interactive_job() {
   # get interactive job parameters for host
   params=()
   epic_host_parameters params host
-  length=${#params[@]}
-  if [[ $length -lt 3 ]] ; then
+  if [[ ${#params[@]} -lt 3 ]] ; then
     echo "Incorrect number of host-specific configuration parameters for ${host}"
     exit 1
   fi
 
-  ACCOUNT=${params[0]}
+  account=${params[0]}
   walltime=${params[1]}
   tpn=${params[2]}
 
-  #tpn=$(tasks_per_node ${host})
-  #walltime="720"  # 12hr
-  echo "Starting interactive job on ${host} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
+  echo "Starting interactive job on ${host} for account ${account} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
   case ${host} in
     derecho)
-      #ACCOUNT="NRAL0032"
-      #walltime="12:00:00"
       module load ncarenv/25.10 &>/dev/null  # required for qcmd
-      qcmd -l select=1:ncpus=${tpn}:mpiprocs=${tpn} -l walltime=${walltime} -j oe -q main -A ${ACCOUNT} -- bash ${script}
+      qcmd -l select=1:ncpus=${tpn}:mpiprocs=${tpn} -l walltime=${walltime} -j oe -q main -A ${account} -- bash ${script}
       ;;
     gaea-c6)
-      #ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --clusters=c6 --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=normal --partition=batch --clusters=c6 --account=${account} bash ${script}
       ;;
     hercules)
-      #ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
       ;;
     orion)
-      #ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
       ;;
     ursa)
-      #ACCOUNT="epic"
-      salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${ACCOUNT} bash ${script}
+      salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${account} bash ${script}
       ;;
     *)
       echo "ERROR, run_interactive_job command not configured for ${host}"
