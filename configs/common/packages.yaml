@@ -176,6 +176,10 @@ packages:
       - any_of:
         - +gfs_phys constants=GFS
         - ~gfs_phys constants=GEOS
+      - any_of:
+        - 'fflags="-fp-speculation=safe"'
+        when: '%oneapi'
+        message: Reduce aggressive speculative optimization for ifx
     fontconfig:
       require:
       - +pic
