@@ -25,18 +25,16 @@ SPACK_STACK_PACKAGES_TO_TEST=(
 usage() {
   set +x
   echo
-  echo "Usage: $0 -r <ROLE> -m <MODE> [-d <ENV_DIRS>] [-c <BUILDCACHE_DIR>]"
+  echo "Usage: $0 -m <MODE> [-d <ENV_DIRS>] [-c <BUILDCACHE_DIR>]"
   echo
-  echo "  -r  Set role, can be 'ops' or 'dev'"
   echo "  -m  Set mode, can be 'build' or 'install';"
   echo "      build: build environments and update build caches;"
-  echo "      install: install environments using build caches"
+  echo "      install: install environments using build caches (do not update build caches)"
   echo "  -d  Build or install environments in ENV_DIRS;"
   echo "      if not set, the default location is used"
   echo "  -c  Provide location of build caches as BUILDCACHE_DIR;"
   echo "      if not set, authoritative build caches are used"
   echo "  -u  Flag to update bootstrap and source caches;"
-  echo "      requires role 'dev' and mode 'build'"
   echo "  -e  Continue builds/install in existing environments;"
   echo "      by default, exit with an error if already exist"
   echo "  -s  Submit 'spack install' to batch scheduler"
@@ -49,9 +47,6 @@ usage() {
 while getopts r:m:d:c:uesth flag
 do
   case "${flag}" in
-    r)
-      SPACK_STACK_ROLE=${OPTARG}
-      ;;
     m)
       SPACK_STACK_MODE=${OPTARG}
       ;;
@@ -81,7 +76,6 @@ do
 done
 
 echo "INFO: $0 options:"
-echo "  SPACK_STACK_ROLE:                            ${SPACK_STACK_ROLE:-not set}"
 echo "  SPACK_STACK_MODE:                            ${SPACK_STACK_MODE:-not set}"
 echo "  SPACK_STACK_ENVIRONMENT_DIRS:                ${SPACK_STACK_ENVIRONMENT_DIRS:-${SPACK_STACK_DIR}/envs}"
 echo "  SPACK_STACK_BUILDCACHE_DIR:                  ${SPACK_STACK_BUILDCACHE_DIR:-use default caches}"
@@ -89,14 +83,6 @@ echo "  SPACK_STACK_UPDATE_DEV_CACHES:               ${SPACK_STACK_UPDATE_DEV_CA
 echo "  SPACK_STACK_IGNORE_ENV_EXIST:                ${SPACK_STACK_IGNORE_ENV_EXIST:-false}"
 echo "  SPACK_STACK_SUBMIT_TO_SCHEDULER:             ${SPACK_STACK_SUBMIT_TO_SCHEDULER:-false}"
 echo "  SPACK_STACK_RUN_TESTS:                       ${SPACK_STACK_RUN_TESTS:-false}"
-
-if [[ -z ${SPACK_STACK_ROLE} ]]; then
-  echo "ERROR, SPACK_STACK_ROLE not defined. Provide -r ROLE as argument"
-  exit 1
-elif [[ ! ${SPACK_STACK_ROLE} == "dev" && ! ${SPACK_STACK_ROLE} == "ops" ]]; then
-  echo "ERROR, invalid role '${SPACK_STACK_ROLE}'"
-  exit 1
-fi
 
 if [[ -z ${SPACK_STACK_MODE} ]]; then
   echo "ERROR, SPACK_STACK_MODE not defined. Provide -m MODE as argument"
@@ -106,17 +92,10 @@ elif [[ ! ${SPACK_STACK_MODE} == "build" && ! ${SPACK_STACK_MODE} == "install" ]
   exit 1
 fi
 
-# Role ops cannot write to the default (authoritative) build cache
-if [[ ${SPACK_STACK_ROLE} == "ops" && ${SPACK_STACK_MODE} == "build" && -z ${SPACK_STACK_BUILDCACHE_DIR} ]]; then
-  echo "ERROR, SPACK_STACK_BUILDCACHE_DIR not defined. Provide -c BUILDCACHE_DIR"
-  echo "as argument when role is 'ops' and mode is 'build'"
-  exit 1
-fi
-
 # Updating bootstrap and source caches requires role dev and mode build
 if [[ ${SPACK_STACK_UPDATE_DEV_CACHES} == "true" ]]; then
-  if [[ ! ${SPACK_STACK_ROLE} == "dev" || ! ${SPACK_STACK_MODE} == "build" ]]; then
-    echo "ERROR, SPACK_STACK_UPDATE_DEV_CACHES requires role 'dev' and mode 'build'"
+  if [[ ! ${SPACK_STACK_MODE} == "build" ]]; then
+    echo "ERROR, SPACK_STACK_UPDATE_DEV_CACHES requires mode 'build'"
     exit 1
   fi
 fi
@@ -126,12 +105,6 @@ fi
 # Remove domain name suffices and digits and dashes [MSU] to determine hostname
 SPACK_STACK_BATCH_HOST=$(echo ${HOSTNAME} | cut -d "." -f 1 | cut -d "-" -f 1)
 SPACK_STACK_BATCH_HOST=${SPACK_STACK_BATCH_HOST//[0-9]/}
-
-# Not pertinent to EPIC hosts; save as an illustrative example for EPIC ParallelWorks hosts
-# Workaround for ParallelWorks login nodes
-#if [[ "${SPACK_STACK_BATCH_HOST}" == *"awsneptunecluster"* ]]; then
-#  SPACK_STACK_BATCH_HOST="navy-aws"
-#fi
 
 case ${SPACK_STACK_BATCH_HOST} in
   derecho)
@@ -392,26 +365,17 @@ if [[ "${SPACK_STACK_MODE}" == "install" ]]; then
   update_build_cache="false"
   reuse_build_cache="true"
 elif [[ "${SPACK_STACK_MODE}" == "build" ]]; then
-  if [[ "${SPACK_STACK_ROLE}" == "ops" ]]; then
+  if [[ ${SPACK_STACK_UPDATE_DEV_CACHES} == "true" ]]; then
+    update_bootstrap_mirror="true"
+    update_cargo_mirror="true"
+    update_source_cache="true"
+    update_build_cache="true"
+  else
     update_bootstrap_mirror="false"
     update_cargo_mirror="false"
     update_source_cache="false"
-  elif [[ "${SPACK_STACK_ROLE}" == "dev" ]]; then
-    if [[ ${SPACK_STACK_UPDATE_DEV_CACHES} == "true" ]]; then
-      update_bootstrap_mirror="true"
-      update_cargo_mirror="true"
-      update_source_cache="true"
-    else
-      update_bootstrap_mirror="false"
-      update_cargo_mirror="false"
-      update_source_cache="false"
-    fi
-  else
-    echo "ERROR, invalid role ${SPACK_STACK_ROLE}"
-    exit 1
+    update_build_cache="false"
   fi
-  update_build_cache="true"
-  reuse_build_cache="true"
 else
   echo "ERROR, invalid mode ${SPACK_STACK_MODE}"
   exit 1
