@@ -574,7 +574,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
       tmp_bootstrap_mirror_path=${PWD}/tmp-bootstrap-mirror
       echo "Creating bootstrap mirror ${tmp_bootstrap_mirror_path} ..."
       rm -fr ${tmp_bootstrap_mirror_path}
-      spack bootstrap mirror --binary-packages ${tmp_bootstrap_mirror_path} 2>&1 | tee log.bootstrap-mirror.001
+      spack bootstrap mirror --binary-packages ${tmp_bootstrap_mirror_path} 2>&1 | tee log.${env_name}.bootstrap-mirror.001
       rsync -a ${tmp_bootstrap_mirror_path}/ ${bootstrap_mirror_path}/
       rm -fr ${tmp_bootstrap_mirror_path}
       # Update buildcache index
@@ -595,7 +595,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
                              --template=${template} \
                              --dir=${environment_dirs} \
                              --treat-warnings-as-errors \
-                             2>&1 | tee log.create.001
+                             2>&1 | tee log.${env_name}.create.001
     fi
     spack env activate -p ${env_dir}
 
@@ -645,7 +645,7 @@ for compiler in "${SPACK_STACK_BATCH_COMPILERS[@]}"; do
     spack bootstrap now 2>&1 | tee log.bootstrap.${env_name}.001
 
     # Concretize environment, and check that spack.lock is created
-    spack concretize --force --fresh 2>&1 | tee log.concretize.001
+    spack concretize --force --fresh 2>&1 | tee log.${env_name}.concretize.001
     if [[ ! -e ${env_dir}/spack.lock ]]; then
       echo "ERROR during concretization of environment ${env_name}, spack.lock not found"
       exit 1
@@ -713,7 +713,7 @@ $(declare -p test_packages)
 # If no tests are required, install everything
 if [[ \${#test_packages[@]} -eq 0 ]]; then
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.001
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.${env_name}.install.001
   set +o pipefail
 else
   for (( idx=0; idx<\${#test_packages[@]}; idx++ )); do
@@ -725,14 +725,14 @@ else
     idx_padded=\$(printf "%03d" "\$((idx+1))")
     set -o pipefail
     spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} --only=dependencies \${test_package} \\
-      2>&1 | tee log.install.\${idx_padded}.\${test_package}-dependencies
-    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee log.install.\${idx_padded}.\${test_package}
+      2>&1 | tee log.${env_name}.install.\${idx_padded}.\${test_package}-dependencies
+    spack install --verbose --no-cache --test=root \${test_package} 2>&1 | tee log.${env_name}.install.\${idx_padded}.\${test_package}
     set +o pipefail
   done
   # idx now equals the length of the array; install the rest
   idx_padded=\$(printf "%03d" "\$((idx+1))")
   set -o pipefail
-  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.install.\${idx_padded}
+  spack install --verbose ${buildcache_install_flags} ${parallel_install_flags} 2>&1 | tee log.${env_name}.install.\${idx_padded}
   set +o pipefail
 fi
 EOF
@@ -751,13 +751,13 @@ EOF
 
     # In install mode, create environment modules
     if [[ "${update_build_cache}" == "false" ]]; then
-      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee log.modules.001
-      spack stack setup-meta-modules 2>&1 | tee log.setup-meta-modules.001
+      spack module ${module_choice} refresh --yes --upstream-modules 2>&1 | tee log.${env_name}.modules.001
+      spack stack setup-meta-modules 2>&1 | tee log.${env_name}.setup-meta-modules.001
     fi
 
     echo
     echo -n "Copying log files to ${env_dir}..."
-    mv log.* ${env_dir}
+    mv -f log.* ${env_dir} 2> /dev/null
     echo -n "done"
     echo
 
