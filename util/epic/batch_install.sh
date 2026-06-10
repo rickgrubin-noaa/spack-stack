@@ -370,11 +370,13 @@ elif [[ "${SPACK_STACK_MODE}" == "build" ]]; then
     update_cargo_mirror="true"
     update_source_cache="true"
     update_build_cache="true"
+    reuse_build_cache="false"
   else
     update_bootstrap_mirror="false"
     update_cargo_mirror="false"
     update_source_cache="false"
     update_build_cache="false"
+    reuse_build_cache="true"
   fi
 else
   echo "ERROR, invalid mode ${SPACK_STACK_MODE}"
