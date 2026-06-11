@@ -113,6 +113,8 @@ case ${SPACK_STACK_BATCH_HOST} in
     SPACK_STACK_MODULE_CHOICE="lmod"
     SPACK_STACK_BOOTSTRAP_MIRROR="/glade/work/epicufsrt/contrib/spack-stack/derecho/bootstrap-mirror"
     SPACK_STACK_CARGO_MIRROR="/glade/work/epicufsrt/contrib/spack-stack/derecho/cargo-mirror"
+    # set TMPDIR to avoid full /tmp directory on derecho login nodes
+    export TMPDIR=/glade/derecho/scratch/epicufsrt
     ;;
   gaea)
     SPACK_STACK_BATCH_COMPILERS=("oneapi@=2025.2.1" "gcc@=13.3.1")
