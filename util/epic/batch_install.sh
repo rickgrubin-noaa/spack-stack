@@ -224,35 +224,6 @@ function fix_permissions() {
 
 ##################################################################################################
 
-function tasks_per_node() {
-  host=$1
-  case ${host} in
-    derecho)
-      tpn=128
-      ;;
-    gaea-c6)
-      tpn=120
-      ;;
-    hercules)
-      tpn=80
-      ;;
-    orion)
-      tpn=40
-      ;;
-    ursa)
-      tpn=128
-      ;;
-    *)
-      echo "ERROR, tasks_per_node command not configured for ${host}"
-      exit 1
-      ;;
-  esac
-  echo "${tpn}"
-}
-
-
-##################################################################################################
-
 function epic_host_parameters() {
   local -n host_array=$1
   local -n epic_host=$2
@@ -269,10 +240,12 @@ function epic_host_parameters() {
       host_array=("epic" "720" "80")
       ;;
     orion)
+      # salloc failures on dev nodes with qos=long, so must use walltime=360
       host_array=("epic" "720" "40")
       ;;
     ursa)
-      host_array=("epic" "720" "128")
+      # occasional failures installing 'go' at tpn=128
+      host_array=("epic" "720" "64")
       ;;
     *)
       echo "ERROR, host_parameters command not configured for ${host}"
@@ -313,7 +286,9 @@ function run_interactive_job() {
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
       ;;
     orion)
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
+      # failures on dev nodes with qos=long, so must use qos=batch
+      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=development --account=${account} bash ${script}
       ;;
     ursa)
       salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${account} bash ${script}
@@ -723,11 +698,9 @@ EOF
       spack stack setup-meta-modules 2>&1 | tee log.${env_name}.setup-meta-modules.001
     fi
 
-    echo
-    echo -n "Copying log files to ${env_dir}..."
+    echo ; echo -n "Copying log files to ${env_dir}..."
     mv -f log.* ${env_dir} 2> /dev/null
-    echo -n "done"
-    echo
+    echo -n "done" ; echo
 
     # When creating or updating buildcaches, fix permissions for mirrors.
     # Mirrors do not contain executables, therefore skip looking for them.
