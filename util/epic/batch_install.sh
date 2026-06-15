@@ -230,7 +230,7 @@ function tasks_per_node() {
     derecho)
       tpn=128
       ;;
-    gaea)
+    gaea-c6)
       tpn=128
       ;;
     hercules)
