@@ -240,7 +240,6 @@ function epic_host_parameters() {
       host_array=("epic" "720" "80")
       ;;
     orion)
-      # salloc failures on dev nodes with qos=long, so must use walltime=360
       host_array=("epic" "720" "40")
       ;;
     ursa)
@@ -286,9 +285,7 @@ function run_interactive_job() {
       salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
       ;;
     orion)
-      # failures on dev nodes with qos=long, so must use qos=batch
-      #salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
-      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=batch --partition=development --account=${account} bash ${script}
+      salloc --exclusive --nodes=1 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --partition=development --account=${account} bash ${script}
       ;;
     ursa)
       salloc --exclusive --nodes=1 --mem=0 --ntasks-per-node=${tpn} --time=${walltime} --qos=long --account=${account} bash ${script}
