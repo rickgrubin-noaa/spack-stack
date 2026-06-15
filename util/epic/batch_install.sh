@@ -224,6 +224,35 @@ function fix_permissions() {
 
 ##################################################################################################
 
+function tasks_per_node() {
+  host=$1
+  case ${host} in
+    derecho)
+      tpn=128
+      ;;
+    gaea)
+      tpn=128
+      ;;
+    hercules)
+      tpn=80
+      ;;
+    orion)
+      tpn=40
+      ;;
+    ursa)
+      # occasional failures installing 'go' at tpn=128
+      tpn=64
+      ;;
+    *)
+      echo "ERROR, tasks_per_node command not configured for ${host}"
+      exit 1
+      ;;
+  esac
+  echo "${tpn}"
+}
+
+##################################################################################################
+
 function epic_host_parameters() {
   local -n host_array=$1
   local -n epic_host=$2
