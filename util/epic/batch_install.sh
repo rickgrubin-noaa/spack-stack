@@ -260,20 +260,19 @@ function epic_host_parameters() {
   # array values: ("account" "walltime" "tasks_per_node")
   case ${epic_host} in
     derecho)
-      host_array=("NRAL0032" "12:00:00" "128")
+	    host_array=("NRAL0032" "12:00:00")
       ;;
     gaea-c6)
-      host_array=("epic" "720" "128")
+      host_array=("epic" "720")
       ;;
     hercules)
-      host_array=("epic" "720" "80")
+      host_array=("epic" "720")
       ;;
     orion)
-      host_array=("epic" "720" "40")
+      host_array=("epic" "720")
       ;;
     ursa)
-      # occasional failures installing 'go' at tpn=128
-      host_array=("epic" "720" "64")
+      host_array=("epic" "720")
       ;;
     *)
       echo "ERROR, host_parameters command not configured for ${host}"
@@ -292,14 +291,14 @@ function run_interactive_job() {
   # get interactive job parameters for host
   params=()
   epic_host_parameters params host
-  if [[ ${#params[@]} -lt 3 ]] ; then
+  if [[ ${#params[@]} -lt 2 ]] ; then
     echo "Incorrect number of host-specific configuration parameters for ${host}"
     exit 1
   fi
 
   account=${params[0]}
   walltime=${params[1]}
-  tpn=${params[2]}
+  tpn=$(tasks_per_node ${host})
 
   echo "Starting interactive job on ${host} for account ${account} with ${tpn} tasks and a walltime of ${walltime} minutes for ${script} ..."
   case ${host} in
