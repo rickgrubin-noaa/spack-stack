@@ -66,7 +66,6 @@ class UfsWeatherModelEnv(BundlePackage):
 
     with when("+arborx"):
         depends_on("arborx", type="run")
-        requires("+kokkos", when="+arborx",
-                 msg="Arborx requires +kokkos")
+        requires("+kokkos", msg="Arborx requires +kokkos")
 
     # There is no need for install() since there is no code.
